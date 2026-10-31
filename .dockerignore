@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!pyproject.toml
+!README.md
+!LICENSE
+!clipdock/
+!clipdock/**
+**/__pycache__/
+**/*.pyc

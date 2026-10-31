@@ -27,3 +27,23 @@ jobs:
       - name: Check installed entry point
         working-directory: ${{ runner.temp }}
         run: clipdock --version
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Build hosted website
+        run: docker build -t clipdock:ci .
+      - name: Start hosted website
+        run: docker run --detach --name clipdock-ci -p 127.0.0.1:10000:10000 clipdock:ci
+      - name: Check hosted website
+        run: python tests/container_smoke.py
+      - name: Container logs
+        if: failure()
+        run: docker logs clipdock-ci
+      - name: Stop test container
+        if: always()
+        run: docker rm --force clipdock-ci

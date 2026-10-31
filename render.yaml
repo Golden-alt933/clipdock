@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: clipdock
+    runtime: docker
+    plan: free
+    region: singapore
+    repo: https://github.com/Golden-alt933/clipdock
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: CLIPDOCK_HOSTED
+        value: "1"
+      - key: CLIPDOCK_DATA_DIR
+        value: /tmp/clipdock
+      - key: CLIPDOCK_SESSION_SECRET
+        generateValue: true

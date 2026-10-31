@@ -23,6 +23,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .paths import data_directory
 from .urls import normalize_url
+from . import __version__, hosting
 
 ROOT = Path(__file__).resolve().parent
 DATA = data_directory()
@@ -30,12 +31,44 @@ DOWNLOADS = DATA / "Downloads"
 STATE = DATA / "history.json"
 TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.RLock()
-POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="clipdock")
+POOL = ThreadPoolExecutor(max_workers=1 if hosting.HOSTED else 2, thread_name_prefix="clipdock")
 INSPECTIONS = asyncio.Semaphore(2)
 JOBS = {}
 PROCESSES = {}
 NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 ACTIVE = {"queued", "starting", "downloading", "processing"}
+
+
+def current_owner(request):
+    return hosting.owner_id(request.state.session_cookie) if hosting.HOSTED else None
+
+
+def owns_job(request, job):
+    return job is not None and (not hosting.HOSTED or job.get("owner") == current_owner(request))
+
+
+def browser_job(job):
+    return {key:value for key, value in job.items() if key not in {"owner", "path"}}
+
+
+def clean_expired():
+    """Only delete generated, expired job folders inside hosted temporary storage."""
+    if not hosting.HOSTED:
+        return
+    now = time.time()
+    root = DOWNLOADS.resolve()
+    with LOCK:
+        expired = [key for key, job in JOBS.items() if job["status"] not in ACTIVE
+                   and now - job.get("finished_at", job["created"]) > hosting.FILE_TTL]
+        for key in expired:
+            if not re.fullmatch(r"[a-f0-9]{32}", key):
+                continue
+            folder = (root / key).resolve()
+            if folder.parent == root and folder.name == key and folder.is_dir():
+                shutil.rmtree(folder)
+            JOBS.pop(key, None)
+        if expired:
+            save_state()
 
 
 def save_state():
@@ -100,10 +133,23 @@ def run_job(job_id):
             save_state()
             return
         PROCESSES[job_id] = process
+    watchdog = None
+    if hosting.HOSTED:
+        def timeout():
+            with LOCK:
+                if job["status"] not in ACTIVE:
+                    return
+                job.update(status="error", error="This download took too long. Try a shorter video.")
+            stop_process(process)
+        watchdog = threading.Timer(600, timeout)
+        watchdog.daemon = True
+        watchdog.start()
     try:
         process.stdin.write(json.dumps({"mode": "download", "url": job["url"], "format": job["format"],
                                        "quality": job["quality"], "audio_bitrate": job.get("audio_bitrate", "192"),
-                                       "folder": str(DOWNLOADS / job_id)}) + "\n")
+                                       "folder": str(DOWNLOADS / job_id),
+                                       "max_bytes": hosting.MAX_BYTES if hosting.HOSTED else None,
+                                       "max_duration": hosting.MAX_DURATION if hosting.HOSTED else None}) + "\n")
         process.stdin.close()
         for line in process.stdout:
             try:
@@ -111,7 +157,7 @@ def run_job(job_id):
             except ValueError:
                 continue
             with LOCK:
-                if job["status"] in {"cancelled", "interrupted"}:
+                if job["status"] in {"cancelled", "interrupted", "error"}:
                     continue
                 kind = event.pop("event", "")
                 if kind == "metadata":
@@ -121,7 +167,7 @@ def run_job(job_id):
                 elif kind == "processing":
                     job.update(status="processing", speed=None, eta=None)
                 elif kind == "complete":
-                    job.update(status="complete", percent=100, **event)
+                    job.update(status="complete", percent=100, finished_at=time.time(), **event)
                 elif kind == "error":
                     job.update(status="error", error=friendly_error(event["message"]))
                 if kind != "progress":
@@ -136,8 +182,11 @@ def run_job(job_id):
             if job["status"] not in {"cancelled", "interrupted"}:
                 job.update(status="error", error=friendly_error(str(exc)))
     finally:
+        if watchdog:
+            watchdog.cancel()
         with LOCK:
             PROCESSES.pop(job_id, None)
+            job.setdefault("finished_at", time.time())
             save_state()
 
 
@@ -145,6 +194,7 @@ def run_job(job_id):
 async def lifespan(app):
     DOWNLOADS.mkdir(parents=True, exist_ok=True)
     load_state()
+    clean_expired()
     yield
     with LOCK:
         processes = list(PROCESSES.values())
@@ -158,15 +208,29 @@ async def lifespan(app):
 
 
 app = FastAPI(title="ClipDock", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
+allowed_hosts = ["127.0.0.1", "localhost", "testserver"]
+if hosting.HOSTED:
+    external_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME") or os.environ.get("CLIPDOCK_PUBLIC_HOST")
+    if external_host:
+        allowed_hosts.append(external_host)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 
 @app.middleware("http")
 async def local_access(request: Request, call_next):
+    if hosting.HOSTED:
+        cookie, new_cookie = hosting.session_identity(request)
+        request.state.session_cookie = cookie
+        expected_token = hosting.csrf_token(cookie)
+    else:
+        new_cookie = False
+        expected_token = TOKEN
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-        if not secrets.compare_digest(request.headers.get("x-clipdock-token", ""), TOKEN):
+        if not secrets.compare_digest(request.headers.get("x-clipdock-token", ""), expected_token):
             return JSONResponse({"detail": "Refresh ClipDock and try again."}, status_code=403)
     response = await call_next(request)
+    if new_cookie:
+        response.set_cookie(hosting.COOKIE, cookie, max_age=86400, httponly=True, secure=True, samesite="strict")
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' https: data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
@@ -185,15 +249,24 @@ class Download(Link):
     audio_bitrate: str = "320"
 
 
+@app.get("/healthz")
+def health():
+    return {"status":"ok", "version":__version__}
+
+
 @app.get("/api/config")
-def config():
+def config(request: Request):
     import yt_dlp.version
-    return {"app": "ClipDock", "token": TOKEN, "downloads": str(DOWNLOADS),
+    return {"app": "ClipDock", "token": hosting.csrf_token(request.state.session_cookie) if hosting.HOSTED else TOKEN,
+            "hosted":hosting.HOSTED, "downloads": None if hosting.HOSTED else str(DOWNLOADS),
+            "limits": {"minutes":10,"megabytes":100,"retention_minutes":60} if hosting.HOSTED else None,
             "ffmpeg": bool(shutil.which("ffmpeg")), "node": bool(shutil.which("node")), "engine": yt_dlp.version.__version__}
 
 
 @app.post("/api/inspect")
-async def inspect_link(data: Link):
+async def inspect_link(data: Link, request: Request):
+    if hosting.HOSTED and not hosting.rate_allowed(request.client.host, "inspect"):
+        raise HTTPException(429, "Please wait a few minutes before looking up more videos.")
     try:
         url, platform = normalize_url(data.url)
     except ValueError as exc:
@@ -221,13 +294,17 @@ async def inspect_link(data: Link):
 
 
 @app.get("/api/jobs")
-def jobs():
+def jobs(request: Request):
+    clean_expired()
     with LOCK:
-        return list(reversed([dict(job) for job in JOBS.values()]))
+        return list(reversed([browser_job(job) for job in JOBS.values() if owns_job(request, job)]))
 
 
 @app.post("/api/jobs", status_code=202)
-def add_job(data: Download):
+def add_job(data: Download, request: Request):
+    clean_expired()
+    if hosting.HOSTED and not hosting.rate_allowed(request.client.host, "download"):
+        raise HTTPException(429, "You have started several downloads. Please wait a few minutes before adding more.")
     try:
         url, platform = normalize_url(data.url)
     except ValueError as exc:
@@ -239,44 +316,54 @@ def add_job(data: Download):
     if not shutil.which("ffmpeg"):
         raise HTTPException(503, "FFmpeg is missing. Install FFmpeg, then restart ClipDock.")
     with LOCK:
+        if hosting.HOSTED:
+            if sum(j["status"] in ACTIVE and owns_job(request, j) for j in JOBS.values()) >= 2:
+                raise HTTPException(429, "Please let your current downloads finish first.")
+            if sum(j["status"] in ACTIVE for j in JOBS.values()) >= 6:
+                raise HTTPException(429, "The download queue is busy. Try again shortly.")
         if sum(j["status"] in ACTIVE for j in JOBS.values()) >= 20:
             raise HTTPException(429, "The queue is full. Let a few downloads finish first.")
         job = {"id": uuid.uuid4().hex, "url": url, "platform": platform, "format": data.format,
                "quality": data.quality, "audio_bitrate": data.audio_bitrate,
                "status": "queued", "percent": 0, "created": time.time(),
                "title": "Reading video…", "error": None}
+        if hosting.HOSTED:
+            job["owner"] = current_owner(request)
         JOBS[job["id"]] = job
         save_state()
         POOL.submit(run_job, job["id"])
-        return dict(job)
+        return browser_job(job)
 
 
 @app.post("/api/jobs/{job_id}/cancel")
-def cancel_job(job_id: str):
+def cancel_job(job_id: str, request: Request):
     with LOCK:
         job = JOBS.get(job_id)
-        if not job:
+        if not owns_job(request, job):
             raise HTTPException(404, "Download not found.")
         if job["status"] not in ACTIVE:
-            return dict(job)
+            return browser_job(job)
         job.update(status="cancelled", error=None)
         process = PROCESSES.get(job_id)
         save_state()
     if process:
         stop_process(process)
-    return dict(job)
+    return browser_job(job)
 
 
 @app.get("/api/jobs/{job_id}/file")
-def get_file(job_id: str):
+def get_file(job_id: str, request: Request):
+    clean_expired()
     with LOCK:
         job = JOBS.get(job_id)
-        if not job or job["status"] != "complete" or not job.get("filename"):
+        if not owns_job(request, job) or job["status"] != "complete" or not job.get("filename"):
             raise HTTPException(404, "This download is not ready yet.")
         folder = (DOWNLOADS / job_id).resolve()
         path = (folder / job["filename"]).resolve()
         if not path.is_relative_to(folder) or not path.is_file():
             raise HTTPException(404, "The file has been moved or is no longer available.")
+        if hosting.HOSTED and not hosting.reserve_transfer(path.stat().st_size):
+            raise HTTPException(503, "This free instance has reached its transfer allowance. Please try again later.")
     media_types = {".mp3":"audio/mpeg", ".m4a":"audio/mp4", ".opus":"audio/ogg", ".ogg":"audio/ogg"}
     content_type = media_types.get(path.suffix, "audio/webm" if job["format"] == "audio" and path.suffix == ".webm"
                                    else mimetypes.guess_type(path.name)[0] or "application/octet-stream")
@@ -285,6 +372,8 @@ def get_file(job_id: str):
 
 @app.post("/api/open-folder")
 def open_folder():
+    if hosting.HOSTED:
+        raise HTTPException(404, "Not available on the hosted website.")
     if os.name == "nt":
         os.startfile(str(DOWNLOADS))
         return {"ok": True}
@@ -298,6 +387,8 @@ def open_folder():
 
 @app.post("/api/shutdown")
 def shutdown():
+    if hosting.HOSTED:
+        raise HTTPException(404, "Not available on the hosted website.")
     server = getattr(app.state, "server", None)
     if server:
         def finish():

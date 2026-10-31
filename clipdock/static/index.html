@@ -19,7 +19,7 @@
   <symbol id="music" viewBox="0 0 24 24"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
 </svg>
 <div class="shell">
-  <header><a class="brand" href="/" aria-label="ClipDock home"><span class="brandmark"><svg><use href="#download"/></svg></span>clipdock<span class="branddot">.</span></a><span class="local-badge"><i></i> Running on your computer</span></header>
+  <header><a class="brand" href="/" aria-label="ClipDock home"><span class="brandmark"><svg><use href="#download"/></svg></span>clipdock<span class="branddot">.</span></a><span class="local-badge"><i></i> <span id="mode-label">Ready when you are</span></span></header>
   <main>
     <section class="hero">
       <div class="eyebrow"><span></span> YOUR PERSONAL VIDEO SAVER</div>
@@ -31,6 +31,7 @@
           <label for="url">Start with a video link</label>
           <div class="url-row"><svg class="icon"><use href="#link"/></svg><input id="url" type="url" placeholder="Paste your video link here…" required autocomplete="off" spellcheck="false"><button id="inspect-button" class="primary" type="submit">Find video <svg class="icon"><use href="#arrow"/></svg></button></div>
           <p class="input-hint">YouTube videos & Shorts · Instagram Reels & posts · Pinterest video Pins</p>
+          <p id="hosted-limits" class="input-hint" hidden></p>
         </form>
         <div id="form-error" class="message error" role="alert" hidden></div>
         <div id="video-preview" hidden>
@@ -38,7 +39,7 @@
           <div class="download-options"><div><label for="format">Save as</label><select id="format"><option value="mp4">MP4 · Video + audio</option><option value="mp3">MP3 · Audio only</option><option value="audio">Best source audio</option></select></div><div id="video-quality-field"><label for="quality">Video quality</label><select id="quality"><option value="best">Best available</option><option value="2160">Prefer 4K</option><option value="1080" selected>Prefer 1080p</option><option value="720">Prefer 720p</option><option value="360">Prefer 360p</option></select></div><div id="audio-quality-field" hidden><label for="audio-bitrate">MP3 bitrate</label><select id="audio-bitrate"><option value="320" selected>320 kbps · Highest MP3 bitrate</option><option value="256">256 kbps</option><option value="192">192 kbps</option><option value="128">128 kbps · Smaller file</option></select></div><div id="source-quality-field" hidden><label for="source-quality">Audio quality</label><select id="source-quality" disabled><option>Original source · M4A / Opus</option></select></div><button id="download-button" class="primary"><svg class="icon"><use href="#download"/></svg> Download</button></div>
           <p id="quality-hint" class="input-hint">Prefers your chosen resolution; falls back to the smallest available if needed. Works with portrait videos too.</p>
         </div>
-        <div class="card-footer"><span><svg class="tiny"><use href="#check"/></svg> Free, with no ads</span><span><svg class="tiny"><use href="#check"/></svg> Files stay on your PC</span><span><svg class="tiny"><use href="#check"/></svg> No ClipDock account</span></div>
+        <div class="card-footer"><span><svg class="tiny"><use href="#check"/></svg> Free, with no ads</span><span><svg class="tiny"><use href="#check"/></svg> <span id="privacy-label">Files stay on your PC</span></span><span><svg class="tiny"><use href="#check"/></svg> No ClipDock account</span></div>
       </div>
       <p id="dependency-warning" class="message error" hidden></p>
     </section>
@@ -48,7 +49,7 @@
       <div id="jobs" aria-live="polite"></div>
       <div id="empty" class="empty"><div class="empty-icon"><svg><use href="#download"/></svg></div><h3>Your next good find belongs here.</h3><p>Paste a link above to save your first video.</p><span>Ready when you are.</span></div>
     </section>
-    <section class="how"><div><span class="step-number">01</span><h3>Copy the link.</h3><p>Tap Share on a video you want to save, then copy its link.</p></div><div><span class="step-number">02</span><h3>Make it yours.</h3><p>Paste it above and pick your format and video quality.</p></div><div><span class="step-number">03</span><h3>Keep it close.</h3><p>Your file lands in the Downloads folder inside ClipDock.</p></div></section>
+    <section class="how"><div><span class="step-number">01</span><h3>Copy the link.</h3><p>Tap Share on a video you want to save, then copy its link.</p></div><div><span class="step-number">02</span><h3>Make it yours.</h3><p>Paste it above and pick your format and video quality.</p></div><div><span class="step-number">03</span><h3>Keep it close.</h3><p id="save-instruction">Your file lands in the Downloads folder inside ClipDock.</p></div></section>
   </main>
   <footer><span>Little finds. Lasting inspiration.</span><p>Save content you own or have permission to download. Private, paid, or protected videos may be unavailable.</p><span id="engine-label">ClipDock / Local edition</span></footer>
 </div>

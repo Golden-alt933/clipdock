@@ -10,6 +10,7 @@ function toast(message) { $('toast').textContent = message; $('toast').hidden = 
 function showError(message) { $('form-error').textContent = message; $('form-error').hidden = !message; }
 async function api(path, body) {
   const response = await fetch(path, body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json','X-ClipDock-Token':config?.token || ''},body:JSON.stringify(body)});
+  if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('The service is waking up or is temporarily unavailable. Try again in a moment.');
   const data = await response.json();
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Something went wrong. Please try again.');
   return data;
@@ -17,10 +18,18 @@ async function api(path, body) {
 async function initialize() {
   try {
     config = await api('/api/config');
+    $('mode-label').textContent = config.hosted ? 'Free online video saver' : 'Running on your computer';
+    if (config.hosted) {
+      $('open-folder').hidden = true;
+      $('privacy-label').textContent = 'No installation needed';
+      $('save-instruction').textContent = 'When it is ready, tap Save file to download it to your device.';
+      $('hosted-limits').hidden = false;
+      $('hosted-limits').textContent = 'Free service: videos up to 10 minutes / 100 MB. Download your file within 1 hour. The service may need a minute to wake up.';
+    }
     $('engine-label').textContent = `ClipDock / Engine ${config.engine}`;
     if (!config.ffmpeg || !config.node) { $('dependency-warning').hidden = false; $('dependency-warning').textContent = `Missing ${[!config.ffmpeg && 'FFmpeg',!config.node && 'Node.js'].filter(Boolean).join(' and ')}. Check README.txt, then restart the app.`; }
     await refresh();
-  } catch (error) { showError('Could not connect to ClipDock. Start the app, then refresh this page.'); }
+  } catch (error) { showError('Could not connect to ClipDock. Refresh this page in a moment.'); }
 }
 $('link-form').addEventListener('submit', async event => {
   event.preventDefault(); showError(''); preview = null; $('video-preview').hidden = true;
@@ -79,7 +88,7 @@ function render() {
     const formatLabel = job.format === 'audio' ? 'Source audio' : job.format.toUpperCase();
     const qualityLabel = job.format === 'mp3' ? `${job.audio_bitrate || '192'} kbps` : job.format === 'audio' ? 'Original codec' : job.quality === 'best' ? 'Best quality' : `Prefer ${job.quality}p`;
     const detail = [job.platform,formatLabel,qualityLabel,done ? bytes(job.size) : duration(job.duration)].filter(Boolean).join(' · ');
-    return `<article class="job ${escapeHtml(job.status)}">${image ? `<img class="job-thumb" src="${escapeHtml(image)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : `<div class="job-thumb empty-icon">${icon(job.format === 'mp3' ? 'music' : 'play')}</div>`}<div class="job-main"><h3 class="job-title">${escapeHtml(job.title)}</h3><p class="job-meta">${escapeHtml(detail)}</p>${active ? `<div class="progress"><progress max="100" value="${Number(job.percent)||0}" aria-label="Download progress"></progress></div><p class="job-meta">${escapeHtml([job.speed ? `${bytes(job.speed)}/s` : '',job.eta ? `${duration(job.eta)} left` : ''].filter(Boolean).join(' · '))}</p>` : ''}${job.error ? `<p class="job-error">${escapeHtml(job.error)}</p>` : ''}</div><span class="job-status">${escapeHtml(statusNames[job.status] || job.status)}${job.status === 'downloading' && job.percent != null ? `<br>${job.percent}%` : ''}</span><div class="job-actions">${done ? `<a href="/api/jobs/${job.id}/file" download aria-label="Save ${escapeHtml(job.title)}">${icon('download')} Save copy</a>` : active ? `<button data-cancel="${job.id}" aria-label="Cancel download">${icon('close')}</button>` : `<button data-retry="${job.id}">Retry</button>`}</div></article>`;
+    return `<article class="job ${escapeHtml(job.status)}">${image ? `<img class="job-thumb" src="${escapeHtml(image)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : `<div class="job-thumb empty-icon">${icon(job.format === 'mp4' ? 'play' : 'music')}</div>`}<div class="job-main"><h3 class="job-title">${escapeHtml(job.title)}</h3><p class="job-meta">${escapeHtml(detail)}</p>${active ? `<div class="progress"><progress max="100" value="${Number(job.percent)||0}" aria-label="Download progress"></progress></div><p class="job-meta">${escapeHtml([job.speed ? `${bytes(job.speed)}/s` : '',job.eta ? `${duration(job.eta)} left` : ''].filter(Boolean).join(' · '))}</p>` : ''}${job.error ? `<p class="job-error">${escapeHtml(job.error)}</p>` : ''}</div><span class="job-status">${escapeHtml(statusNames[job.status] || job.status)}${job.status === 'downloading' && job.percent != null ? `<br>${job.percent}%` : ''}</span><div class="job-actions">${done ? `<a href="/api/jobs/${job.id}/file" download aria-label="Save ${escapeHtml(job.title)}">${icon('download')} ${config?.hosted ? 'Save file' : 'Save copy'}</a>` : active ? `<button data-cancel="${job.id}" aria-label="Cancel download">${icon('close')}</button>` : `<button data-retry="${job.id}">Retry</button>`}</div></article>`;
   }).join('');
 }
 $('jobs').addEventListener('click', async event => {
@@ -94,4 +103,10 @@ $('jobs').addEventListener('click', async event => {
 });
 $('open-folder').addEventListener('click', async () => { try { const result = await api('/api/open-folder', {}); if (!result.ok) toast(result.path); } catch (error) { toast(error.message); } });
 async function refresh() { try { jobs = await api('/api/jobs'); online = true; render(); } catch { if (online) toast('Connection lost. Restart ClipDock or refresh this page.'); online = false; } }
-updateFilters(); initialize(); setInterval(refresh, 1500);
+async function poll() {
+  await refresh();
+  const active = jobs.some(job => activeStates.has(job.status));
+  const delay = document.hidden ? 30000 : config?.hosted ? (active ? 2000 : 15000) : 1500;
+  setTimeout(poll, delay);
+}
+updateFilters(); initialize(); setTimeout(poll, 1500);

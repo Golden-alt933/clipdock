@@ -53,10 +53,16 @@ def run(data):
     folder.mkdir(parents=True, exist_ok=True)
     last_emit = [0.0]
     completed = []
+    transferred = {}
+    max_bytes = data.get("max_bytes")
 
     def progress(d):
         import time
         if d["status"] == "downloading":
+            if max_bytes:
+                transferred[d.get("filename", "media")] = d.get("downloaded_bytes", 0)
+                if sum(transferred.values()) > max_bytes:
+                    raise ValueError("This video exceeds the hosted site's 100 MB file limit.")
             now = time.monotonic()
             if now - last_emit[0] < 0.3:
                 return
@@ -77,6 +83,8 @@ def run(data):
                     "progress_hooks": [progress], "overwrites": False,
                     "post_hooks": [lambda filename: completed.append(Path(filename))],
                     "postprocessor_hooks": [lambda d: emit("processing") if d["status"] == "started" else None]})
+    if max_bytes:
+        options["max_filesize"] = max_bytes
     if not shutil.which("ffmpeg"):
         raise ValueError("FFmpeg is missing. Install FFmpeg, then restart ClipDock.")
     if output_format == "mp3":
@@ -94,6 +102,8 @@ def run(data):
                         "merge_output_format": "mp4", "postprocessors": [{"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}]})
     with yt_dlp.YoutubeDL(options) as downloader:
         info = first_video(downloader.extract_info(data["url"], download=False))
+        if data.get("max_duration") and (info.get("duration") or 0) > data["max_duration"]:
+            raise ValueError("The free hosted site supports videos up to 10 minutes long.")
         emit("metadata", **summary(info))
         downloader.process_ie_result(info, download=True)
     files = [p for p in completed if p.is_file() and (output_format == "audio" or p.suffix == f".{output_format}")]

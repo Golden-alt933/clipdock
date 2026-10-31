@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-11-01
+
+- Complete hosted website mode with bundled Python, Node.js, FFmpeg, and browser interface.
+- Render free-plan Blueprint and Docker deployment, with a health endpoint.
+- Separate signed browser sessions, private job lists/files/cancellation, and disabled local-machine controls online.
+- Hosted file expiry, media size/duration limits, job timeout, request limits, and a supplementary transfer allowance.
+- Website copy and Save file controls for visitors who have no local installation.
+- Hosted privacy/limit tests and Docker build/smoke checks in CI.
+
 ## 0.2.0 — 2026-11-01
 
 - MP3 bitrate selection: 128, 192, 256, or 320 kbps; new downloads default to 320 kbps.

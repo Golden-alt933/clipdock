@@ -12,14 +12,14 @@ from clipdock import worker
 
 
 class MediaTests(unittest.TestCase):
-    def run_worker(self, output_format="mp4", bitrate="320"):
+    def run_worker(self, output_format="mp4", bitrate="320", extra=None):
         captured = {}
         original = yt_dlp.YoutubeDL
         with tempfile.TemporaryDirectory() as folder:
             def create(options):
                 captured["options"] = options
                 downloader = original(options)
-                info = {"id":"fixture", "title":"Portrait fixture", "extractor":"fixture", "formats":[
+                info = {"id":"fixture", "title":"Portrait fixture", "duration":30, "extractor":"fixture", "formats":[
                     {"format_id":"audio", "url":"https://example.com/audio.m4a", "ext":"m4a", "vcodec":"none", "acodec":"aac", "abr":128},
                     {"format_id":"portrait", "url":"https://example.com/video.mp4", "ext":"mp4", "vcodec":"h264", "acodec":"none", "width":720, "height":1280},
                 ]}
@@ -37,7 +37,7 @@ class MediaTests(unittest.TestCase):
             output = io.StringIO()
             with patch.object(worker.yt_dlp, "YoutubeDL", side_effect=create), patch("shutil.which", return_value="ffmpeg"), contextlib.redirect_stdout(output):
                 worker.run({"mode":"download", "url":"https://example.com/video", "folder":folder,
-                            "format":output_format, "quality":"1080", "audio_bitrate":bitrate})
+                            "format":output_format, "quality":"1080", "audio_bitrate":bitrate, **(extra or {})})
             captured["events"] = [json.loads(line) for line in output.getvalue().splitlines()]
         return captured
 
@@ -61,6 +61,18 @@ class MediaTests(unittest.TestCase):
         self.assertEqual(result["options"]["postprocessors"][0]["preferredcodec"], "best")
         self.assertNotIn("preferredquality", result["options"]["postprocessors"][0])
         self.assertEqual(result["events"][-1]["filename"], "fixture.m4a")
+
+    def test_hosted_duration_limit_prevents_download(self):
+        with self.assertRaisesRegex(ValueError, "10 minutes"):
+            self.run_worker(extra={"max_duration":10})
+
+    def test_hosted_streaming_limit_counts_separate_audio_and_video(self):
+        result = self.run_worker(extra={"max_bytes":100})
+        progress = result["options"]["progress_hooks"][0]
+        with contextlib.redirect_stdout(io.StringIO()):
+            progress({"status":"downloading", "filename":"video", "downloaded_bytes":60})
+            with self.assertRaisesRegex(ValueError, "100 MB"):
+                progress({"status":"downloading", "filename":"audio", "downloaded_bytes":60})
 
 
 if __name__ == "__main__":
