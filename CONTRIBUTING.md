@@ -19,7 +19,7 @@ Never commit downloaded videos, browser cookies, access tokens, history files, l
 - `clipdock/urls.py`: allowed URL normalization.
 - `clipdock/paths.py`: platform-specific writable storage.
 - `clipdock/static/`: browser interface, no build step.
-- `tests/`: offline tests; GitHub Actions runs them on Linux and Windows.
+- `tests/`: offline tests; GitHub Actions runs them on Linux, Windows, and macOS.
 - `run.py` and the `.cmd`/`.ps1` files: Windows double-click compatibility.
 
 Start with `python -m clipdock serve --data-dir ./dev-data`. Do not put private videos or history into screenshots. Run live platform checks manually when appropriate and report them separately from the offline suite.

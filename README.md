@@ -79,6 +79,22 @@ This uses the Git repository directly; ClipDock has not been published to PyPI. 
 
 ### Windows
 
+**PowerShell command:** with uv, Git, FFmpeg/FFprobe, and Node.js 22+ installed, launch directly from GitHub:
+
+```powershell
+uvx --from git+https://github.com/Golden-alt933/clipdock.git clipdock serve --open
+```
+
+To keep the command installed (uv can install Python 3.13 for you):
+
+```powershell
+uv tool install --python 3.13 git+https://github.com/Golden-alt933/clipdock.git
+clipdock serve --open
+clipdock download "VIDEO_URL" --format mp3 --audio-bitrate 320
+```
+
+Get uv from its [official installation guide](https://docs.astral.sh/uv/getting-started/installation/). If `clipdock` is not found after installation, run `uv tool update-shell`, then open a new terminal. The double-click launcher below remains available too.
+
 Install [Python](https://www.python.org/downloads/), [FFmpeg](https://ffmpeg.org/download.html), and [Node.js](https://nodejs.org/) and make them available on `PATH`. Windows Package Manager can install them:
 
 ```powershell
@@ -102,7 +118,30 @@ py -m venv .venv
 
 ### macOS
 
-With Python 3.11+, Git, FFmpeg/FFprobe, and Node.js 22+ installed, use the Linux clone/virtual-environment commands above. On Homebrew, the system tools are available through `brew install python ffmpeg node git`.
+**Terminal commands**, using Homebrew to install the free requirements:
+
+```bash
+brew install uv ffmpeg node git
+uv tool install --python 3.13 git+https://github.com/Golden-alt933/clipdock.git
+clipdock doctor
+clipdock serve --open
+```
+
+Or launch without keeping a permanent tool installation:
+
+```bash
+uvx --from git+https://github.com/Golden-alt933/clipdock.git clipdock serve --open
+```
+
+Direct terminal downloads work exactly as on Windows and Linux:
+
+```bash
+clipdock download "VIDEO_URL" --quality 1080
+clipdock download "VIDEO_URL" --format mp3 --audio-bitrate 320
+clipdock download "VIDEO_URL" --format audio
+```
+
+If the installed command is not found, run `uv tool update-shell`, then open a new terminal. Without uv, use the Linux clone/virtual-environment commands with Python 3.11+; Homebrew also provides Python through `brew install python`.
 
 ## Download from the terminal
 
@@ -196,7 +235,7 @@ python -m unittest discover -s tests -v
 python -m clipdock serve
 ```
 
-Tests use temporary data and mocks rather than downloading platform media in CI. The CI matrix covers Windows and Linux on Python 3.11 and 3.13. Live service behavior must be checked separately. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
+Tests use temporary data and mocks rather than downloading platform media in CI. The CI matrix covers **Windows, Linux, and macOS** on Python 3.11 and 3.13. Live service behavior must be checked separately. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
 
 ## How it works
 

@@ -8,6 +8,7 @@
 - MP3 filenames include bitrate to avoid reusing an older lower-bitrate CLI download.
 - Fixed Instagram portrait Reels failing with "Requested format is not available": quality selection now uses the shorter video dimension and falls back when a preferred resolution is unavailable.
 - Added regression tests for portrait selection, bitrate handling, source audio, and audio file delivery.
+- Added explicit PowerShell/macOS CLI setup examples and macOS CI coverage.
 
 ## 0.1.0 — 2026-11-01
 
