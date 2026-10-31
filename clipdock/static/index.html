@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f5f0">
+  <title>ClipDock — Save a little inspiration.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%232f674c'/%3E%3Cpath d='M32 14v26m-10-10 10 10 10-10M17 43v8h30v-8' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/mobile.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="link" viewBox="0 0 24 24"><path d="m10 13 4-4m-6 7-1 1a4.2 4.2 0 0 1-6-6l5-5a4.2 4.2 0 0 1 6 0m0 2 1-1a4.2 4.2 0 0 1 6 6l-5 5a4.2 4.2 0 0 1-6 0" transform="translate(2 1) scale(.9)"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7V4h6l2 3h10v13H3z"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z"/></symbol>
+  <symbol id="music" viewBox="0 0 24 24"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
+</svg>
+<div class="shell">
+  <header><a class="brand" href="/" aria-label="ClipDock home"><span class="brandmark"><svg><use href="#download"/></svg></span>clipdock<span class="branddot">.</span></a><span class="local-badge"><i></i> Running on your computer</span></header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span></span> YOUR PERSONAL VIDEO SAVER</div>
+      <h1>Found something good?<br><em>Keep it.</em></h1>
+      <p class="intro">A video, a reel, a little inspiration.<br>One link. Yours to watch offline.</p>
+      <div class="platforms"><span><b class="youtube-logo">▶</b> YouTube</span><span><b class="instagram-logo">◎</b> Instagram</span><span><b class="pinterest-logo">P</b> Pinterest</span></div>
+      <div class="save-card">
+        <form id="link-form">
+          <label for="url">Start with a video link</label>
+          <div class="url-row"><svg class="icon"><use href="#link"/></svg><input id="url" type="url" placeholder="Paste your video link here…" required autocomplete="off" spellcheck="false"><button id="inspect-button" class="primary" type="submit">Find video <svg class="icon"><use href="#arrow"/></svg></button></div>
+          <p class="input-hint">YouTube videos & Shorts · Instagram Reels & posts · Pinterest video Pins</p>
+        </form>
+        <div id="form-error" class="message error" role="alert" hidden></div>
+        <div id="video-preview" hidden>
+          <div class="preview-media"><img id="preview-img" alt="Video thumbnail" referrerpolicy="no-referrer"><div><span id="preview-platform" class="small-label"></span><h2 id="preview-title"></h2><p id="preview-details"></p></div></div>
+          <div class="download-options"><div><label for="format">Save as</label><select id="format"><option value="mp4">MP4 · Video + audio</option><option value="mp3">MP3 · Audio only</option></select></div><div><label for="quality">Video quality</label><select id="quality"><option value="best">Best available</option><option value="2160">Up to 4K</option><option value="1080" selected>Up to 1080p</option><option value="720">Up to 720p</option><option value="360">Up to 360p</option></select></div><button id="download-button" class="primary"><svg class="icon"><use href="#download"/></svg> Download</button></div>
+          <p class="input-hint">Uses the best available quality up to your choice. MP3 is saved at 192 kbps.</p>
+        </div>
+        <div class="card-footer"><span><svg class="tiny"><use href="#check"/></svg> Free, with no ads</span><span><svg class="tiny"><use href="#check"/></svg> Files stay on your PC</span><span><svg class="tiny"><use href="#check"/></svg> No ClipDock account</span></div>
+      </div>
+      <p id="dependency-warning" class="message error" hidden></p>
+    </section>
+    <section class="library" aria-labelledby="library-heading">
+      <div class="section-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h2 id="library-heading">The good stuff, saved.<span id="job-count">0</span></h2></div><button id="open-folder" class="secondary"><svg class="icon"><use href="#folder"/></svg> Open downloads folder</button></div>
+      <div class="filters" role="group" aria-label="Filter downloads"><button class="filter active" data-filter="all">All downloads</button><button class="filter" data-filter="active">In progress <span id="active-count">0</span></button><button class="filter" data-filter="complete">Completed</button></div>
+      <div id="jobs" aria-live="polite"></div>
+      <div id="empty" class="empty"><div class="empty-icon"><svg><use href="#download"/></svg></div><h3>Your next good find belongs here.</h3><p>Paste a link above to save your first video.</p><span>Ready when you are.</span></div>
+    </section>
+    <section class="how"><div><span class="step-number">01</span><h3>Copy the link.</h3><p>Tap Share on a video you want to save, then copy its link.</p></div><div><span class="step-number">02</span><h3>Make it yours.</h3><p>Paste it above and pick your format and video quality.</p></div><div><span class="step-number">03</span><h3>Keep it close.</h3><p>Your file lands in the Downloads folder inside ClipDock.</p></div></section>
+  </main>
+  <footer><span>Little finds. Lasting inspiration.</span><p>Save content you own or have permission to download. Private, paid, or protected videos may be unavailable.</p><span id="engine-label">ClipDock / Local edition</span></footer>
+</div>
+<div id="toast" role="status" hidden></div>
+</body>
+</html>

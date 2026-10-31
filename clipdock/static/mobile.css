@@ -1,0 +1,6 @@
+@media (max-width: 520px) {
+  .job-main { flex-basis: calc(100% - 80px); }
+  .job-status { margin-left: 68px; text-align: left; }
+  .job-actions { margin-left: auto; }
+  .job-thumb.empty-icon { margin: 0; }
+}
