@@ -10,8 +10,9 @@ A free, open-source downloader for public **YouTube videos and Shorts, Instagram
 
 ## What you get
 
-- MP4 video and MP3 audio downloads.
-- Video quality caps: 360p, 720p, 1080p, 4K, or best available.
+- MP4 video, MP3 audio at up to **320 kbps**, and **best source audio** in its native codec.
+- MP3 bitrate choices: 128, 192, 256, or 320 kbps (default).
+- Video resolution preferences: 360p, 720p, 1080p, 4K, or best available; supports portrait Reels and Shorts.
 - Two concurrent downloads, a queue, progress, cancellation, retry, and local history.
 - A local browser interface and a `clipdock` command for Windows, Linux, and macOS.
 - No subscription, ads, paid API, ClipDock account, analytics, or cloud relay.
@@ -110,6 +111,8 @@ Once installed, download without starting the browser interface:
 ```bash
 clipdock download "https://www.youtube.com/shorts/q6ZqeyEh64A"
 clipdock download "https://www.youtube.com/shorts/q6ZqeyEh64A" --format mp3
+clipdock download "https://www.youtube.com/shorts/q6ZqeyEh64A" --format mp3 --audio-bitrate 320
+clipdock download "https://www.youtube.com/shorts/q6ZqeyEh64A" --format audio
 clipdock download "https://www.youtube.com/shorts/q6ZqeyEh64A" --quality 720 --output ./saved-videos
 ```
 
@@ -127,7 +130,9 @@ clipdock download "VIDEO_URL" --json
 
 - Direct CLI downloads default to `./Downloads` in the current directory.
 - `--output` chooses a directory, not an individual filename.
-- `--format` accepts `mp4` (default) or `mp3`; MP3 output is 192 kbps.
+- `--format` accepts `mp4` (default), `mp3`, or `audio` (best source audio).
+- `--audio-bitrate` accepts `128`, `192`, `256`, or `320` kbps; MP3 conversion defaults to `320`. MP3 filenames include the selected bitrate so a previous lower-bitrate download is not reused by mistake.
+- Best source audio keeps the original codec, usually M4A/AAC or Opus, avoiding another lossy MP3 conversion. Its actual bitrate is determined by the platform, and different codecs cannot be compared by bitrate alone.
 - `--quality` accepts `360`, `720`, `1080` (default), `2160`, or `best`.
 - `--json` emits newline-delimited JSON events for scripts.
 - Successful downloads return exit code `0`; invalid arguments or missing requirements return `2`, download failures return nonzero, and Ctrl+C returns `130`.
@@ -154,7 +159,8 @@ Completed files are already saved locally. **Save copy** offers another copy thr
 - Boards, profiles, playlists, image-only Pins, and live/upcoming streams are excluded.
 - For multi-item posts, the first item must contain video.
 - Private, removed, paid, protected, sign-in-required, rate-limited, or region-restricted videos may not work. There is no account-password or browser-cookie import feature.
-- The quality setting is a maximum, not upscaling. MP3 conversion cannot improve source audio. MP4 codecs depend on the source; some files may contain AV1.
+- Video quality uses the shorter dimension, so a 1080x1920 Reel counts as 1080p. ClipDock prefers the largest available resolution up to your choice, or the smallest available if every stream is larger; it does not upscale. This prevents portrait Reels being rejected by an inappropriate height-only filter.
+- A 320 kbps MP3 cannot restore quality missing from the source. For source fidelity, choose **Best source audio**. MP4 codecs depend on the source; some files may contain AV1.
 - Audio is included when the source supplies it; silent source videos remain silent.
 - Sites change. yt-dlp support does not guarantee every link will work.
 

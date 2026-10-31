@@ -39,12 +39,22 @@ $('link-form').addEventListener('submit', async event => {
   finally { button.disabled = false; button.innerHTML = `Find video ${icon('arrow')}`; button.classList.remove('spin'); }
 });
 $('url').addEventListener('input', () => { preview = null; $('video-preview').hidden = true; showError(''); });
-$('format').addEventListener('change', () => { $('quality').disabled = $('format').value === 'mp3'; });
+function updateFormat() {
+  const format = $('format').value;
+  $('video-quality-field').hidden = format !== 'mp4';
+  $('audio-quality-field').hidden = format !== 'mp3';
+  $('source-quality-field').hidden = format !== 'audio';
+  $('quality-hint').textContent = format === 'mp3'
+    ? 'MP3 defaults to 320 kbps. A higher bitrate cannot restore quality missing from the source.'
+    : format === 'audio' ? 'Keeps the best source audio in its native codec, usually M4A or Opus, avoiding an extra MP3 conversion.'
+    : 'Prefers your chosen resolution; falls back to the smallest available if needed. Works with portrait videos too.';
+}
+$('format').addEventListener('change', updateFormat);
 $('download-button').addEventListener('click', async () => {
   if (!preview) return;
   const button = $('download-button'); button.disabled = true; showError('');
   try {
-    await api('/api/jobs', {url:preview.url,format:$('format').value,quality:$('quality').value});
+    await api('/api/jobs', {url:preview.url,format:$('format').value,quality:$('quality').value,audio_bitrate:$('audio-bitrate').value});
     filter = 'all'; updateFilters(); toast('Added to your downloads.'); await refresh();
     $('library-heading').scrollIntoView({behavior:'smooth',block:'center'});
   } catch (error) { showError(error.message); }
@@ -66,7 +76,9 @@ function render() {
   $('jobs').innerHTML = visible.map(job => {
     const active = activeStates.has(job.status), done = job.status === 'complete';
     const image = thumbnail(job.thumbnail);
-    const detail = [job.platform,job.format.toUpperCase(),job.format === 'mp3' ? '192 kbps' : job.quality === 'best' ? 'Best quality' : `Up to ${job.quality}p`,done ? bytes(job.size) : duration(job.duration)].filter(Boolean).join(' · ');
+    const formatLabel = job.format === 'audio' ? 'Source audio' : job.format.toUpperCase();
+    const qualityLabel = job.format === 'mp3' ? `${job.audio_bitrate || '192'} kbps` : job.format === 'audio' ? 'Original codec' : job.quality === 'best' ? 'Best quality' : `Prefer ${job.quality}p`;
+    const detail = [job.platform,formatLabel,qualityLabel,done ? bytes(job.size) : duration(job.duration)].filter(Boolean).join(' · ');
     return `<article class="job ${escapeHtml(job.status)}">${image ? `<img class="job-thumb" src="${escapeHtml(image)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : `<div class="job-thumb empty-icon">${icon(job.format === 'mp3' ? 'music' : 'play')}</div>`}<div class="job-main"><h3 class="job-title">${escapeHtml(job.title)}</h3><p class="job-meta">${escapeHtml(detail)}</p>${active ? `<div class="progress"><progress max="100" value="${Number(job.percent)||0}" aria-label="Download progress"></progress></div><p class="job-meta">${escapeHtml([job.speed ? `${bytes(job.speed)}/s` : '',job.eta ? `${duration(job.eta)} left` : ''].filter(Boolean).join(' · '))}</p>` : ''}${job.error ? `<p class="job-error">${escapeHtml(job.error)}</p>` : ''}</div><span class="job-status">${escapeHtml(statusNames[job.status] || job.status)}${job.status === 'downloading' && job.percent != null ? `<br>${job.percent}%` : ''}</span><div class="job-actions">${done ? `<a href="/api/jobs/${job.id}/file" download aria-label="Save ${escapeHtml(job.title)}">${icon('download')} Save copy</a>` : active ? `<button data-cancel="${job.id}" aria-label="Cancel download">${icon('close')}</button>` : `<button data-retry="${job.id}">Retry</button>`}</div></article>`;
   }).join('');
 }
@@ -76,7 +88,7 @@ $('jobs').addEventListener('click', async event => {
   const button = cancel || retry; button.disabled = true;
   try {
     if (cancel) await api(`/api/jobs/${cancel.dataset.cancel}/cancel`, {});
-    else { const job = jobs.find(item => item.id === retry.dataset.retry); await api('/api/jobs', {url:job.url,format:job.format,quality:job.quality}); toast('Added to the queue again.'); }
+    else { const job = jobs.find(item => item.id === retry.dataset.retry); await api('/api/jobs', {url:job.url,format:job.format,quality:job.quality,audio_bitrate:job.audio_bitrate || '192'}); toast('Added to the queue again.'); }
     await refresh();
   } catch (error) { toast(error.message); button.disabled = false; }
 });

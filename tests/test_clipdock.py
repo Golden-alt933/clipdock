@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from clipdock.cli import main
+from clipdock import __version__
 from clipdock.paths import data_directory
 from clipdock.urls import normalize_url
 
@@ -61,15 +62,16 @@ class CliTests(unittest.TestCase):
         process.wait.return_value = 0
         output = io.StringIO()
         with patch("shutil.which", return_value="installed"), patch("subprocess.Popen", return_value=process), contextlib.redirect_stdout(output):
-            self.assertEqual(main(["download", "https://youtu.be/q6ZqeyEh64A", "--json"]), 0)
+            self.assertEqual(main(["download", "https://youtu.be/q6ZqeyEh64A", "--format", "mp3", "--audio-bitrate", "256", "--json"]), 0)
         self.assertEqual([json.loads(line) for line in output.getvalue().splitlines()], events)
         sent = json.loads(process.stdin.write.call_args.args[0])
         self.assertEqual(sent["url"], "https://www.youtube.com/watch?v=q6ZqeyEh64A")
+        self.assertEqual(sent["audio_bitrate"], "256")
 
     def test_module_entry_point_and_bundled_assets(self):
         result = subprocess.run([sys.executable, "-m", "clipdock", "--version"], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0.1.0", result.stdout)
+        self.assertIn(__version__, result.stdout)
         from importlib.resources import files
         for asset in ["index.html", "app.js", "style.css", "mobile.css"]:
             self.assertTrue(files("clipdock").joinpath("static", asset).is_file())
@@ -92,6 +94,19 @@ class ApiTests(unittest.TestCase):
                     self.assertEqual(client.post("/api/jobs", json={"url":url}).status_code, 403)
                     self.assertEqual(client.post("/api/jobs", json={"url":"https://127.0.0.1"}, headers=headers).status_code, 400)
                     self.assertEqual(client.post("/api/jobs", json={"url":url,"format":"exe"}, headers=headers).status_code, 400)
+                    self.assertEqual(client.post("/api/jobs", json={"url":url,"format":"mp3","audio_bitrate":"999"}, headers=headers).status_code, 400)
+                    audio = client.post("/api/jobs", json={"url":url,"format":"mp3"}, headers=headers)
+                    self.assertEqual(audio.status_code, 202)
+                    self.assertEqual(audio.json()["audio_bitrate"], "320")
+                    source = client.post("/api/jobs", json={"url":url,"format":"audio"}, headers=headers)
+                    self.assertEqual(source.status_code, 202)
+                    source_id = source.json()["id"]
+                    source_folder = root / "Downloads" / source_id
+                    source_folder.mkdir()
+                    (source_folder / "sample.m4a").write_bytes(b"audio-fixture")
+                    module.JOBS[source_id].update(status="complete",filename="sample.m4a")
+                    source_file = client.get(f"/api/jobs/{source_id}/file")
+                    self.assertEqual(source_file.headers["content-type"], "audio/mp4")
                     created = client.post("/api/jobs", json={"url":url}, headers=headers)
                     self.assertEqual(created.status_code, 202)
                     job_id = created.json()["id"]

@@ -23,8 +23,11 @@ def parser():
     serve.add_argument("--data-dir", type=Path, help="Directory for history and the Downloads folder")
     download = commands.add_parser("download", help="Download directly from the terminal")
     download.add_argument("url")
-    download.add_argument("--format", choices=("mp4", "mp3"), default="mp4")
+    download.add_argument("--format", choices=("mp4", "mp3", "audio"), default="mp4",
+                          help="MP4 video, MP3 conversion, or best source audio")
     download.add_argument("--quality", choices=("best", "360", "720", "1080", "2160"), default="1080")
+    download.add_argument("--audio-bitrate", choices=("128", "192", "256", "320"), default="320",
+                          help="MP3 target bitrate in kbps (default: 320); does not improve source fidelity")
     download.add_argument("--output", "-o", type=Path, default=Path.cwd() / "Downloads", help="Destination directory")
     download.add_argument("--json", action="store_true", help="Print newline-delimited JSON events")
     commands.add_parser("doctor", help="Check Python, FFmpeg, FFprobe, and Node.js")
@@ -53,6 +56,7 @@ def download(args):
         print("FFmpeg and FFprobe are required. Run: clipdock doctor", file=sys.stderr)
         return 2
     options = {"mode": "download", "url": url, "format": args.format, "quality": args.quality,
+               "audio_bitrate": args.audio_bitrate,
                "folder": str(args.output.expanduser().resolve())}
     process = subprocess.Popen([sys.executable, "-u", str(Path(__file__).with_name("worker.py"))],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8",

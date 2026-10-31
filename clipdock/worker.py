@@ -68,25 +68,35 @@ def run(data):
         elif d["status"] == "finished":
             emit("processing")
 
-    options.update({"outtmpl": str(folder / "%(title).100s [%(id)s].%(ext)s"),
+    output_format = data["format"]
+    bitrate = str(data.get("audio_bitrate", "320"))
+    if output_format not in {"mp4", "mp3", "audio"} or bitrate not in {"128", "192", "256", "320"}:
+        raise ValueError("Choose a supported format and MP3 bitrate.")
+    suffix = f" [{bitrate}kbps]" if output_format == "mp3" else " [source]" if output_format == "audio" else ""
+    options.update({"outtmpl": str(folder / ("%(title).100s [%(id)s]" + suffix + ".%(ext)s")),
                     "progress_hooks": [progress], "overwrites": False,
                     "post_hooks": [lambda filename: completed.append(Path(filename))],
                     "postprocessor_hooks": [lambda d: emit("processing") if d["status"] == "started" else None]})
     if not shutil.which("ffmpeg"):
         raise ValueError("FFmpeg is missing. Install FFmpeg, then restart ClipDock.")
-    if data["format"] == "mp3":
+    if output_format == "mp3":
         options.update({"format": "bestaudio/best", "postprocessors": [
-            {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}]})
+            {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": bitrate}]})
+    elif output_format == "audio":
+        options.update({"format": "bestaudio/best", "postprocessors": [
+            {"key": "FFmpegExtractAudio", "preferredcodec": "best"}]})
     else:
-        cap = "" if data["quality"] == "best" else f"[height<={int(data['quality'])}]"
-        options.update({"format": f"bv*{cap}[ext=mp4]+ba[ext=m4a]/b{cap}[ext=mp4]/bv*{cap}+ba/b{cap}",
+        quality = data["quality"]
+        if quality not in {"best", "360", "720", "1080", "2160"}:
+            raise ValueError("Choose a supported video quality.")
+        options.update({"format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
+                        "format_sort": ["res" if quality == "best" else f"res:{quality}"],
                         "merge_output_format": "mp4", "postprocessors": [{"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}]})
     with yt_dlp.YoutubeDL(options) as downloader:
         info = first_video(downloader.extract_info(data["url"], download=False))
         emit("metadata", **summary(info))
         downloader.process_ie_result(info, download=True)
-    extension = data["format"]
-    files = [p for p in completed if p.is_file() and p.suffix == f".{extension}"]
+    files = [p for p in completed if p.is_file() and (output_format == "audio" or p.suffix == f".{output_format}")]
     if not files:
         raise ValueError("Download finished without a usable output file. Try another quality.")
     result = max(files, key=lambda p: p.stat().st_mtime)

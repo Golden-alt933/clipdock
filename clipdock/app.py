@@ -1,6 +1,7 @@
 """ClipDock: a loopback-only video downloader with isolated cancellable jobs."""
 import asyncio
 import json
+import mimetypes
 import os
 import re
 import secrets
@@ -101,7 +102,8 @@ def run_job(job_id):
         PROCESSES[job_id] = process
     try:
         process.stdin.write(json.dumps({"mode": "download", "url": job["url"], "format": job["format"],
-                                       "quality": job["quality"], "folder": str(DOWNLOADS / job_id)}) + "\n")
+                                       "quality": job["quality"], "audio_bitrate": job.get("audio_bitrate", "192"),
+                                       "folder": str(DOWNLOADS / job_id)}) + "\n")
         process.stdin.close()
         for line in process.stdout:
             try:
@@ -180,6 +182,7 @@ class Link(BaseModel):
 class Download(Link):
     format: str = "mp4"
     quality: str = "1080"
+    audio_bitrate: str = "320"
 
 
 @app.get("/api/config")
@@ -229,7 +232,9 @@ def add_job(data: Download):
         url, platform = normalize_url(data.url)
     except ValueError as exc:
         raise HTTPException(400, str(exc))
-    if data.format not in ("mp4", "mp3") or data.quality not in ("best", "360", "720", "1080", "2160"):
+    if (data.format not in ("mp4", "mp3", "audio")
+            or data.quality not in ("best", "360", "720", "1080", "2160")
+            or data.audio_bitrate not in ("128", "192", "256", "320")):
         raise HTTPException(400, "Choose one of the available format and quality options.")
     if not shutil.which("ffmpeg"):
         raise HTTPException(503, "FFmpeg is missing. Install FFmpeg, then restart ClipDock.")
@@ -237,7 +242,8 @@ def add_job(data: Download):
         if sum(j["status"] in ACTIVE for j in JOBS.values()) >= 20:
             raise HTTPException(429, "The queue is full. Let a few downloads finish first.")
         job = {"id": uuid.uuid4().hex, "url": url, "platform": platform, "format": data.format,
-               "quality": data.quality, "status": "queued", "percent": 0, "created": time.time(),
+               "quality": data.quality, "audio_bitrate": data.audio_bitrate,
+               "status": "queued", "percent": 0, "created": time.time(),
                "title": "Reading video…", "error": None}
         JOBS[job["id"]] = job
         save_state()
@@ -271,7 +277,10 @@ def get_file(job_id: str):
         path = (folder / job["filename"]).resolve()
         if not path.is_relative_to(folder) or not path.is_file():
             raise HTTPException(404, "The file has been moved or is no longer available.")
-    return FileResponse(path, filename=path.name, media_type="audio/mpeg" if path.suffix == ".mp3" else "video/mp4")
+    media_types = {".mp3":"audio/mpeg", ".m4a":"audio/mp4", ".opus":"audio/ogg", ".ogg":"audio/ogg"}
+    content_type = media_types.get(path.suffix, "audio/webm" if job["format"] == "audio" and path.suffix == ".webm"
+                                   else mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+    return FileResponse(path, filename=path.name, media_type=content_type)
 
 
 @app.post("/api/open-folder")

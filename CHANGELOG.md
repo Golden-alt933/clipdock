@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — 2026-11-01
+
+- MP3 bitrate selection: 128, 192, 256, or 320 kbps; new downloads default to 320 kbps.
+- Best source audio output preserves the available native audio codec instead of converting to MP3.
+- Added `--audio-bitrate` and `--format audio` to the CLI, with matching browser controls and history labels.
+- MP3 filenames include bitrate to avoid reusing an older lower-bitrate CLI download.
+- Fixed Instagram portrait Reels failing with "Requested format is not available": quality selection now uses the shorter video dimension and falls back when a preferred resolution is unavailable.
+- Added regression tests for portrait selection, bitrate handling, source audio, and audio file delivery.
+
 ## 0.1.0 — 2026-11-01
 
 - Initial public release with a local browser interface.
