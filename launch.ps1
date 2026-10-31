@@ -17,7 +17,7 @@ try {
         & $pythonCommand.Source -m venv (Join-Path $appRoot '.venv')
         if ($LASTEXITCODE -ne 0) { throw 'Could not create the app environment. Install Python 3.11 or newer.' }
     }
-    & $pythonPath -c 'import importlib.util, sys; sys.exit(0 if all(importlib.util.find_spec(name) is not None for name in ("fastapi", "uvicorn", "yt_dlp", "yt_dlp_ejs")) else 1)'
+    & $pythonPath -c "import importlib.util, sys; sys.exit(0 if all(importlib.util.find_spec(name) is not None for name in ('fastapi', 'uvicorn', 'yt_dlp', 'yt_dlp_ejs')) else 1)"
     if ($LASTEXITCODE -ne 0) {
         & $pythonPath -m pip install -r (Join-Path $appRoot 'requirements.txt')
         if ($LASTEXITCODE -ne 0) { throw 'Setup failed. Check your internet connection and try again.' }
