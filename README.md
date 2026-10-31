@@ -52,27 +52,9 @@ This is a **local web app**: the browser is its interface and the downloader run
 
 A video page contains a player and information about where its media streams live. ClipDock reads that information, fetches the media, and saves a usable file.
 
-<details>
-<summary>Flowchart: from video link to saved file</summary>
+![Technical download flowchart](docs/download-pipeline.svg)
 
-```mermaid
-flowchart TD
-    A[Copy a YouTube, Instagram, or Pinterest video link] --> B[Paste it into the browser app or CLI]
-    B --> C[ClipDock checks the link]
-    C --> D[yt-dlp reads the public page and finds media streams]
-    D --> E[Choose the available video or audio quality]
-    E --> F[Download the streams or small media segments]
-    F --> G{Output choice}
-    G -->|MP4| H[FFmpeg joins video and audio when needed]
-    G -->|MP3| I[FFmpeg converts audio at the chosen bitrate]
-    G -->|Source audio| J[Keep the original audio codec]
-    H --> K[Save the finished file on your computer]
-    I --> K
-    J --> K
-    D -.-> L[Restricted or unavailable video: show an error]
-```
-
-</details>
+[Open full-size PNG](docs/download-pipeline.png) · [Scalable SVG](docs/download-pipeline.svg)
 
 - **yt-dlp** understands each platform's page and stream formats; Node.js handles JavaScript challenges needed for YouTube extraction.
 - **FFmpeg** joins separate video/audio tracks or converts audio. ClipDock provides the commands, interface, queue, and progress.
