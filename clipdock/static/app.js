@@ -28,7 +28,6 @@ async function initialize() {
     if (config.hosted) {
       $('open-folder').hidden = true;
       $('privacy-label').textContent = 'No installation needed';
-      $('save-instruction').textContent = 'When it is ready, tap Save file to download it to your device.';
       $('hosted-limits').hidden = false;
       $('hosted-limits').textContent = 'Free service: videos up to 10 minutes / 100 MB. Download your file within 1 hour. The service may need a minute to wake up.';
     }
@@ -129,7 +128,7 @@ async function poll() {
   setTimeout(poll, delay);
 }
 function updateNavigation() {
-  const target = ['#library', '#how-it-works'].includes(location.hash) ? location.hash : '#workspace';
+  const target = location.hash === '#library' ? '#library' : '#workspace';
   document.querySelectorAll('.rail-link').forEach(link => {
     const selected = link.getAttribute('href') === target;
     link.classList.toggle('selected', selected);

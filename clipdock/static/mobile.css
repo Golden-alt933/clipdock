@@ -8,7 +8,6 @@
   .workflow-strip { grid-template-columns: 1.3fr repeat(3, 1fr); gap: 12px; }
   .workflow-format { padding-left: 15px; gap: 10px; }
   .workflow-format span { font-size: 9px; }
-  .how { gap: 25px; }
 }
 @media (max-width: 960px) {
   .rail { width: 64px; }
@@ -31,9 +30,6 @@
   .workflow-intro { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
   .workflow-intro p { margin: 0; font-size: 11px; }
   .workflow-format { border-left: 0; padding-left: 0; }
-  .how { grid-template-columns: repeat(3, 1fr); }
-  .how-intro { grid-column: 1 / -1; }
-  .how h2 br { display: none; }
   .job { grid-template-columns: 80px minmax(0, 1fr) 78px 85px; gap: 12px; }
   .job-thumb { width: 80px; height: 58px; }
   .job-actions a, .job-actions button { padding: 9px; }
@@ -88,12 +84,6 @@
   .empty h3 { font-size: 13px; }
   .empty p { font-size: 11px; max-width: 260px; margin: auto; }
   .library-caption { font-size: 7px; letter-spacing: .6px; }
-  .how { padding-top: 39px; gap: 25px 20px; grid-template-columns: 1fr 1fr; }
-  .how-intro { grid-column: 1 / -1; }
-  .how h2 { font-size: 24px; }
-  .how p { font-size: 11px; }
-  .how-step:last-child { grid-column: 1 / -1; }
-  .how-step:last-child p { max-width: 330px; }
   .job { grid-template-columns: 68px minmax(0, 1fr); gap: 10px 14px; padding: 18px 0; }
   .job-thumb { width: 68px; height: 58px; grid-row: 1; align-self: start; }
   .job-main { grid-column: 2; }

@@ -7,6 +7,7 @@
 - Paste-link button with a keyboard fallback when clipboard access is unavailable.
 - Clear source-reading and connection states, keyboard focus styles, and reduced-motion support.
 - Updated the README screenshot to match the new interface.
+- Removed the three-step onboarding section and its sidebar shortcut for a more compact workspace.
 
 ## 0.3.0 — 2026-11-01
 
