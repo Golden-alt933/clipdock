@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.3 — 2026-11-01
+
+- Reduced vertical pupil travel and removed vertical iris scaling to soften the up/down rolling effect.
+- Horizontal gaze stays steady when the cursor moves vertically, including near screen corners.
+
 ## 0.8.2 — 2026-11-01
 
 - Both eyes now share one distant focus instead of independently converging toward the cursor near the face.
