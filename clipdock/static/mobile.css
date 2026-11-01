@@ -20,7 +20,6 @@
   .intro br { display: none; }
   .platforms { gap: 6px; }
   .platforms > span { padding: 7px; font-size: 9px; gap: 5px; }
-  .format-note { font-size: 7px; gap: 8px; flex-wrap: wrap; }
   .card-indicator { font-size: 7px; letter-spacing: 0; }
   .card-heading .small-label { font-size: 8px; }
   .save-card { padding: 22px 18px 0; }
@@ -45,7 +44,7 @@
   .brand { font-size: 26px; }
   .workspace-label { font-size: 8px; letter-spacing: 1px; }
   .local-badge { font-size: 9px; gap: 6px; }
-  .hero { grid-template-columns: 1fr; gap: 31px; padding: 40px 0 34px; }
+  .hero { grid-template-columns: 1fr; grid-template-areas: "copy" "panel" "art"; gap: 28px; padding: 40px 0 34px; }
   .hero-copy > .eyebrow { font-size: 8px; letter-spacing: 1.3px; margin-bottom: 22px; }
   .hero h1 { font-size: clamp(58px, 10.5vw, 78px); line-height: 1; letter-spacing: -3.5px; margin-bottom: 19px; }
   .hero h1 em { letter-spacing: -3px; }
@@ -53,15 +52,14 @@
   .intro br { display: initial; }
   .platforms { gap: 8px; margin: 23px 0 0; }
   .platforms > span { font-size: 10px; padding: 7px 9px; gap: 6px; }
-  .format-note { display: none; }
-  .save-card { padding: 23px 23px 0; border-radius: 12px; }
+  .save-card { padding: 25px 23px 0; border-radius: 20px; }
   .card-heading .small-label { font-size: 9px; }
   .card-indicator { font-size: 8px; letter-spacing: .5px; }
   .save-card > h2 { font-size: 20px; margin: 24px 0; }
   .url-row input { font-size: 16px; padding: 12px 0; }
-  .url-row { min-height: 53px; }
+  .url-row { min-height: 60px; padding-left: 16px; gap: 9px; }
   .primary { min-height: 48px; }
-  .paste-button { height: 36px; width: 36px; }
+  .paste-button { height: 42px; width: 42px; }
   .input-hint { font-size: 10px; }
   .card-footer { font-size: 9px; }
   .workflow-strip { gap: 20px 12px; padding: 21px 0; }
@@ -76,7 +74,7 @@
   .library-toolbar { flex-wrap: wrap; gap: 10px; }
   .filters { gap: 22px; order: 2; width: 100%; }
   .filter { font-size: 11px; min-height: 44px; padding: 12px 0 14px; }
-  .library-search { padding-bottom: 0; width: 100%; margin: 0 0 2px; border: 1px solid #34353b; border-radius: 6px; padding: 9px 12px; background: #17181b; }
+  .library-search { width: 100%; margin: 0 0 2px; border: 1px solid #adcfff25; border-radius: 999px; padding: 9px 14px; background: #adcfff06; }
   .library-search input { flex: 1; min-width: 0; font-size: 16px; }
   select { font-size: 16px; }
   .download-options { grid-template-columns: 1fr; gap: 14px; }
@@ -95,6 +93,9 @@
   footer { padding-top: 20px; padding-bottom: 24px; }
   #toast { left: 50%; width: max-content; max-width: calc(100vw - 32px); }
   .skip-link { left: 16px; }
+  .muse-monitor { margin-top: 2px; }
+  .monitor-tag { font-size: 6px; left: 10px; top: 10px; letter-spacing: .8px; padding: 6px 8px; }
+  .muse-monitor figcaption { font-size: 6px; letter-spacing: .7px; }
 }
 @media (max-width: 440px) {
   .shell { padding: 0 20px; }
@@ -102,7 +103,7 @@
   .local-badge { font-size: 8px; }
   .hero { padding-top: 32px; }
   .hero h1 { font-size: 62px; }
-  .save-card { padding: 22px 17px 0; }
+  .save-card { padding: 24px 17px 0; }
   .save-card > h2 { font-size: 18px; }
   .card-indicator { font-size: 7px; letter-spacing: .3px; }
   .card-footer { font-size: 8px; gap: 8px; }

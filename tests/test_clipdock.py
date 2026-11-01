@@ -73,7 +73,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(__version__, result.stdout)
         from importlib.resources import files
-        for asset in ["index.html", "app.js", "style.css", "mobile.css"]:
+        for asset in ["index.html", "app.js", "style.css", "mobile.css", "apollo-sky.webp"]:
             self.assertTrue(files("clipdock").joinpath("static", asset).is_file())
 
 

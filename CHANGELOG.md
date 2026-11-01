@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 — 2026-11-01
+
+- Sky-blue and cloud-white accents over deep navy, with bundled Apollo-inspired artwork.
+- Decorative editing monitor, video tracks, audio waveform, and animated playhead.
+- Glass-style pill URL field, rounded controls, and refined focus and hover feedback.
+- Scroll-triggered section reveals and preview transitions, with reduced-motion and unsupported-browser fallbacks.
+- Compressed local artwork ships with both the website and installed CLI package; no external image service is needed at runtime.
+
 ## 0.4.0 — 2026-11-01
 
 - Dark creator workspace with warm orange accents, editorial typography, and responsive desktop/mobile layouts.

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101113">
+  <meta name="theme-color" content="#0b111b">
   <meta name="description" content="Your next edit starts here. Save videos and audio from YouTube, Instagram, and Pinterest with ClipDock.">
   <title>ClipDock — Your next edit starts here.</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23f58b57'/%3E%3Cpath d='M32 14v26m-10-10 10 10 10-10M17 43v8h30v-8' fill='none' stroke='%23101113' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%239dccff'/%3E%3Cpath d='M32 14v26m-10-10 10 10 10-10M17 43v8h30v-8' fill='none' stroke='%230b111b' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/mobile.css">
   <script src="/static/app.js" defer></script>
@@ -39,14 +39,27 @@
   <header class="topbar"><a class="brand" href="/" aria-label="ClipDock home">clipdock<span class="branddot">.</span></a><span class="header-divider" aria-hidden="true"></span><span class="workspace-label">CREATOR WORKSPACE</span><span class="local-badge"><i></i><span id="mode-label">Connecting to workspace</span></span></header>
   <main id="workspace">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
+      <div class="hero-copy" data-reveal>
         <p class="eyebrow"><span class="live-line"></span> LESS FRICTION. MORE CREATION.</p>
         <h1 id="hero-title">Good finds.<br><em>Great edits.</em></h1>
         <p class="intro">The clip you bookmarked. The sound you loved.<br>Bring it all into your next project.</p>
         <div class="platforms" aria-label="Supported platforms"><span><svg class="icon"><use href="#youtube"/></svg>YouTube</span><span><svg class="icon"><use href="#instagram"/></svg>Instagram</span><span><b class="pinterest-logo" aria-hidden="true">P</b>Pinterest</span></div>
-        <div class="format-note"><span>VIDEO + AUDIO</span><span class="note-rule"></span><span>YOUR FORMAT. YOUR FLOW.</span></div>
       </div>
-      <div class="save-card">
+      <figure class="muse-monitor" data-reveal>
+        <div class="monitor-image">
+          <img src="/static/apollo-sky.webp" alt="A marble Apollo-inspired sculpture framed by white clouds and a blue sky" width="2022" height="778" fetchpriority="high">
+          <span class="monitor-tag">APOLLO / A STUDY IN LIGHT</span>
+          <span class="monitor-corner corner-tl" aria-hidden="true"></span><span class="monitor-corner corner-tr" aria-hidden="true"></span><span class="monitor-corner corner-bl" aria-hidden="true"></span><span class="monitor-corner corner-br" aria-hidden="true"></span>
+        </div>
+        <figcaption><span>INSPIRATION, IN MOTION.</span><span>FRAME 001 <svg class="icon" aria-hidden="true"><use href="#play"/></svg></span></figcaption>
+        <div class="edit-timeline" aria-hidden="true">
+          <div class="timeline-ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div>
+          <div class="timeline-track video-track"><span class="track-label">V1</span><div class="clip clip-sky"></div><div class="clip clip-marble"></div><div class="clip clip-cloud"></div></div>
+          <div class="timeline-track audio-track"><span class="track-label">A1</span><div class="audio-clip"><svg viewBox="0 0 400 20" preserveAspectRatio="none"><path d="M0 10h400M8 7v6m7-10v14m7-11v8m7-5v2m7-7v12m7-15v18m7-12v6m7-7v8m7-11v14m7-10v6m7-6v6m7-10v14m7-13v12m7-8v4m7-5v6m7-12v18m7-15v12m7-9v6m7-4v2m7-8v14m7-10v6m7-6v6m7-11v16m7-9v2m7-6v10m7-14v18m7-12v6m7-9v12m7-7v2m7-6v10m7-8v6m7-11v16m7-13v10m7-7v4m7-8v12m7-10v8m7-5v2m7-7v12m7-15v18m7-10v2m7-5v8m7-12v16m7-11v6m7-5v4m7-10v16m7-13v10m7-6v2m7-6v10m7-8v6m7-9v12m7-7v2m7-5v8m7-11v14m7-9v4m7-6v8m7-10v12"/></svg></div></div>
+          <div class="timeline-playhead"></div>
+        </div>
+      </figure>
+      <div class="save-card" data-reveal>
         <div class="card-heading"><span class="small-label">01 / CAPTURE</span><span class="card-indicator"><i></i><span id="capture-status" role="status">READY FOR A LINK</span></span></div>
         <h2>A good edit starts with a link.</h2>
         <form id="link-form">
@@ -67,21 +80,21 @@
       </div>
       <p id="dependency-warning" class="message error" hidden></p>
     </section>
-    <section class="workflow-strip" aria-label="Available output formats">
+    <section class="workflow-strip" aria-label="Available output formats" data-reveal>
       <div class="workflow-intro"><span class="small-label">BUILT FOR YOUR WORKFLOW</span><p>From the feed to your timeline.</p></div>
       <div class="workflow-format"><svg class="icon"><use href="#play"/></svg><div><strong>MP4 video</strong><span>Up to source quality</span></div></div>
       <div class="workflow-format"><svg class="icon"><use href="#wave"/></svg><div><strong>320 kbps MP3</strong><span>Your audio, extracted</span></div></div>
       <div class="workflow-format"><svg class="icon"><use href="#music"/></svg><div><strong>Source audio</strong><span>Original codec preserved</span></div></div>
     </section>
     <section id="library" class="library" aria-labelledby="library-heading">
-      <div class="section-heading"><div><span class="eyebrow">02 / YOUR LIBRARY</span><h2 id="library-heading">The keepers.<span id="job-count">0</span></h2></div><button id="open-folder" class="secondary"><svg class="icon"><use href="#folder"/></svg><span>Open folder</span><svg class="icon folder-arrow"><use href="#arrow"/></svg></button></div>
-      <div class="library-toolbar"><div class="filters" role="group" aria-label="Filter downloads"><button class="filter active" data-filter="all">All media</button><button class="filter" data-filter="active">In progress <span id="active-count">0</span></button><button class="filter" data-filter="complete">Completed</button></div><label class="library-search" for="library-search"><svg class="icon"><use href="#search"/></svg><input id="library-search" type="search" placeholder="Search your library" aria-label="Search your library" autocomplete="off"></label></div>
-      <div id="jobs" aria-live="polite" aria-relevant="additions text"></div>
-      <div id="empty" class="empty"><div class="empty-art" aria-hidden="true"><div class="frame-back"></div><div class="frame-front"><svg class="icon"><use href="#play"/></svg><span>00:00:00</span></div><div class="frame-plus">+</div></div><h3>A little empty. A lot of possibility.</h3><p>Drop your first link above. Keep something worth creating with.</p><a class="empty-action" href="#url">Find your first clip <svg class="icon"><use href="#arrow"/></svg></a></div>
+      <div class="section-heading" data-reveal><div><span class="eyebrow">02 / YOUR LIBRARY</span><h2 id="library-heading">The keepers.<span id="job-count">0</span></h2></div><button id="open-folder" class="secondary"><svg class="icon"><use href="#folder"/></svg><span>Open folder</span><svg class="icon folder-arrow"><use href="#arrow"/></svg></button></div>
+      <div class="library-toolbar" data-reveal><div class="filters" role="group" aria-label="Filter downloads"><button class="filter active" data-filter="all">All media</button><button class="filter" data-filter="active">In progress <span id="active-count">0</span></button><button class="filter" data-filter="complete">Completed</button></div><label class="library-search" for="library-search"><svg class="icon"><use href="#search"/></svg><input id="library-search" type="search" placeholder="Search your library" aria-label="Search your library" autocomplete="off"></label></div>
+      <div id="jobs" aria-live="polite" aria-relevant="additions text" data-reveal></div>
+      <div id="empty" class="empty" data-reveal><div class="empty-art" aria-hidden="true"><div class="frame-back"></div><div class="frame-front"><svg class="icon"><use href="#play"/></svg><span>00:00:00</span></div><div class="frame-plus">+</div></div><h3>A little empty. A lot of possibility.</h3><p>Drop your first link above. Keep something worth creating with.</p><a class="empty-action" href="#url">Find your first clip <svg class="icon"><use href="#arrow"/></svg></a></div>
       <div class="library-caption"><span><i></i> YOUR COLLECTION, IN ONE PLACE</span><span>READY FOR THE NEXT CUT.</span></div>
     </section>
   </main>
-  <footer><span class="footer-brand">clipdock<span> / </span>Made to keep.</span><p>Download content you own or have permission to use. Private or protected videos may be unavailable.</p><span id="engine-label">ClipDock / Local edition</span></footer>
+  <footer data-reveal><span class="footer-brand">clipdock<span> / </span>Made to keep.</span><p>Download content you own or have permission to use. Private or protected videos may be unavailable.</p><span id="engine-label">ClipDock / Local edition</span></footer>
 </div>
 <div id="toast" role="status" hidden></div>
 </body>
