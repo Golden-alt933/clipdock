@@ -47,8 +47,10 @@
   .hero h1 { font-size: clamp(55px, 9.3vw, 70px); letter-spacing: -3.5px; line-height: 1.05; margin-bottom: 18px; }
   .hero h1 em { letter-spacing: -3.2px; }
   .intro { font-size: 12px; line-height: 1.85; }
-  .platforms { gap: 7px; margin-top: 19px; }
-  .platforms > span { padding: 8px 11px; font-size: 9px; }
+  .platforms { gap: 14px; margin-top: 20px; }
+  .platform-badge { width: 49px; height: 44px; border-radius: 13px; }
+  .platform-mark { width: 24px; height: 24px; }
+  .platform-youtube .platform-mark { width: 28px; height: 28px; }
   .scene-image { object-position: 62% center; }
   .scene-wash { background: linear-gradient(180deg, #e7f4ff45, #e9f6ff68 48%, #e9f6ff8a); }
   .floating-camera { width: 95px; right: -6px; top: 15%; opacity: .72; }

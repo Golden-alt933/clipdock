@@ -12,6 +12,10 @@ Both pupils receive one shared transform per animation frame, with the same boun
 
 Manrope is self-hosted as `clipdock/static/manrope-latin.woff2`, using the Latin variable-font subset from [Google Fonts](https://fonts.google.com/specimen/Manrope). The unmodified [Open Font License](https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt) is bundled in `clipdock/static/Manrope-OFL.txt`. No font service is contacted at runtime.
 
+## Platform logos
+
+The inline [YouTube](https://github.com/simple-icons/simple-icons/blob/develop/icons/youtube.svg), [Instagram](https://github.com/simple-icons/simple-icons/blob/develop/icons/instagram.svg), and [Pinterest](https://github.com/simple-icons/simple-icons/blob/develop/icons/pinterest.svg) vector paths come from [Simple Icons](https://simpleicons.org/), distributed under CC0 1.0. The license is bundled in `clipdock/static/Simple-Icons-CC0.txt`. The marks retain their original geometry; CSS supplies the colored, beveled badges and light sweep. These assets are served locally. Brand names and marks belong to their respective owners.
+
 ## Generation prompt
 
 > Use case: stylized-concept. Asset type: decorative panoramic artwork for a video editor's dark navy website, displayed in a wide 2.6:1 media-monitor frame. A white marble classical Greek bust of Apollo, youthful idealized face and softly carved curly hair with a modest laurel detail, photographed three-quarter profile, head and shoulders framed completely with breathing room. Surreal airy white cumulus clouds around the pedestal and shoulders, a luminous powder-blue sky, pale icy-blue rim light and elegant navy shadows. Museum-quality sculptural detail, contemporary editorial art direction, subtle analog film grain. Bust slightly right of center, open cloud space at left. Landscape composition, serene and cinematic, blue and cloud-white palette only. Not a UI mockup. No lettering, no text, no logos, no watermark, no border, no interface controls.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 — 2026-11-02
+
+- Replaced the supported-platform text pills with matching YouTube, Instagram, and Pinterest logo badges in brand colors.
+- Added beveled edges, depth, hover tilt, and a staggered light sweep; shine respects motion pause, hidden tabs, and reduced-motion settings.
+- Kept accessible platform names and bundled the vector marks locally with their source and license.
+
 ## 0.8.5 — 2026-11-01
 
 - Both pupils now receive one shared transform per frame, with matching horizontal and vertical travel and smoothing.

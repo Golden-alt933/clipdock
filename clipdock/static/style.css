@@ -74,10 +74,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .hero h1 { font-size: clamp(60px, 5.5vw, 78px); font-weight: 650; line-height: 1.06; letter-spacing: -4px; margin: 0 0 20px; color: #173d5b; text-shadow: 0 1px 0 #f5fbff65; }
 .hero h1 em { font: inherit; font-weight: 450; color: #286893; letter-spacing: -3.7px; }
 .intro { font-size: 14px; font-weight: 550; line-height: 1.8; color: #315a78; margin: 0; text-shadow: 0 1px 0 #fff5; }
-.platforms { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 0; }
-.platforms > span { display: flex; align-items: center; gap: 7px; padding: 8px 13px; border: 1px solid #ffffffb8; background: #ffffff5c; border-radius: 999px; color: #2b5370; font-size: 10px; font-weight: 650; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transition: background .2s; }
-.platforms .icon { width: 15px; height: 15px; }
-.pinterest-logo { display: inline-grid; place-items: center; width: 15px; height: 15px; border: 1.3px solid; border-radius: 50%; font: italic bold 12px Georgia, serif; }
+.platforms { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin: 22px 0 5px; padding: 0 2px; }
+.platform-badge { position: relative; display: grid; place-items: center; flex: 0 0 auto; width: 54px; height: 48px; overflow: hidden; isolation: isolate; border: 1px solid #ffffff7a; border-radius: 14px; color: #fff; transform: perspective(320px) rotateX(9deg) rotateY(-9deg); box-shadow: inset 0 1px 1px #ffffffa3, inset 0 -2px 3px #35062733, 1px 5px 0 var(--badge-edge), 2px 9px 16px var(--badge-glow); transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
+.platform-youtube { --badge-edge: #9d1429; --badge-glow: #b5263a2e; background: linear-gradient(145deg, #ff7568, #f32d42 55%, #d51736); }
+.platform-instagram { --badge-edge: #782668; --badge-glow: #b12c8733; background: radial-gradient(circle at 8% 105%, #ffd677, #ff9b48 24%, #ef456f 49%, #b63ac7 76%, #6153d6); }
+.platform-pinterest { --badge-edge: #870e26; --badge-glow: #a61b3830; background: linear-gradient(145deg, #f76a7c, #df2245 52%, #ba0b2e); }
+.platform-badge::before { content: ''; position: absolute; z-index: -1; inset: 3px; border: 1px solid #ffffff38; border-radius: 10px; background: linear-gradient(155deg, #ffffff3b, transparent 48%); pointer-events: none; }
+.platform-badge::after { content: ''; position: absolute; inset: -35% -55%; background: linear-gradient(110deg, transparent 37%, #ffffff0a 42%, #ffffff85 49%, #ffffff13 57%, transparent 63%); transform: translateX(-75%) rotate(-8deg); animation: platform-shine 7.5s ease-in-out infinite; pointer-events: none; }
+.platform-instagram::after { animation-delay: 1.1s; }
+.platform-pinterest::after { animation-delay: 2.2s; }
+.platform-mark { display: block; width: 26px; height: 26px; fill: currentColor; stroke: none; filter: drop-shadow(0 1px 1px #4f14324d); }
+.platform-youtube .platform-mark { width: 30px; height: 30px; }
+.ambient-paused .platform-badge::after, .page-hidden .platform-badge::after { animation-play-state: paused; }
 .save-card { width: 100%; min-width: 0; padding: 27px 28px 0; border-radius: 28px; }
 .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .card-heading .small-label { color: #346386; font-size: 9px; letter-spacing: 1.8px; }
@@ -197,9 +205,10 @@ footer p { font-size: 8px; max-width: 440px; text-align: center; margin: 0; }
 @keyframes preview-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes toast-in { from { opacity: 0; margin-bottom: -6px; } to { opacity: 1; margin-bottom: 0; } }
 @keyframes pulse { to { opacity: .6; } }
+@keyframes platform-shine { 0%, 62% { transform: translateX(-75%) rotate(-8deg); } 84%, 100% { transform: translateX(75%) rotate(-8deg); } }
 @media (hover: hover) and (pointer: fine) {
   .inspect-button:hover .icon, .empty-action:hover .icon { transform: translateX(4px); }
-  .platforms > span:hover { background: #ffffffa3; }
+  .platform-badge:hover { transform: perspective(320px) translateY(-3px) rotateX(3deg) rotateY(5deg); box-shadow: inset 0 1px 1px #ffffffb8, inset 0 -2px 3px #35062733, 1px 6px 0 var(--badge-edge), 2px 13px 23px var(--badge-glow); }
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .rail, .topbar, .save-card, .library, .workflow-strip, footer { background: #e9f4fff0; }
