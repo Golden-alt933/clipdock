@@ -142,9 +142,9 @@ function initializeAmbientResponse() {
   const image = document.querySelector('.scene-image');
   const details = document.querySelector('.scene-details');
   const eyes = [...document.querySelectorAll('.eye-iris')].map(element => ({
-    element, x:Number(element.dataset.eyeX), y:Number(element.dataset.eyeY),
-    rangeX:Number(element.dataset.eyeRangeX), rangeY:Number(element.dataset.eyeRangeY)
+    element, x:Number(element.dataset.eyeX), y:Number(element.dataset.eyeY)
   }));
+  const gazeTravel = {x:4, y:1.8};
   const gaze = {current:{x:0,y:0}, target:{x:0,y:0}};
   const gazeOrigin = {
     x:eyes.reduce((sum,eye) => sum + eye.x, 0) / (eyes.length || 1),
@@ -234,13 +234,12 @@ function initializeAmbientResponse() {
       if (Math.abs(difference) > .002) { gaze.current[key] += difference * gazeBlend; unsettled = true; }
       else gaze.current[key] = gaze.target[key];
     }
-    eyes.forEach(eye => {
-      const x = gaze.current.x * eye.rangeX, y = gaze.current.y * eye.rangeY;
-      // Slight foreshortening keeps the iris on the curved eyeball surface.
-      const scaleX = 1 - .055 * Math.abs(gaze.current.x);
-      // Keep a stable iris height as it moves behind the fixed eyelid mask.
-      eye.element.style.transform = `translate(${x.toFixed(3)}px, ${y.toFixed(3)}px) scale(${scaleX.toFixed(4)}, 1)`;
-    });
+    const x = gaze.current.x * gazeTravel.x, y = gaze.current.y * gazeTravel.y;
+    // One transform keeps both pupils synchronized in direction, travel, and easing.
+    // Fixed eyelid masks provide occlusion while each iris keeps a stable height.
+    const scaleX = 1 - .055 * Math.abs(gaze.current.x);
+    const irisTransform = `translate(${x.toFixed(3)}px, ${y.toFixed(3)}px) scale(${scaleX.toFixed(4)}, 1)`;
+    eyes.forEach(eye => { eye.element.style.transform = irisTransform; });
     if (unsettled) schedule(); else previousTime = 0;
   }
   window.addEventListener('pointermove', event => {

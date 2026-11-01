@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.5 — 2026-11-01
+
+- Both pupils now receive one shared transform per frame, with matching horizontal and vertical travel and smoothing.
+- Removed the smaller eye's separate movement limits that made it appear out of sync; preserved the main eye's response and fixed eyelids.
+
 ## 0.8.4 — 2026-11-01
 
 - Increased pupil travel and cursor sensitivity so horizontal and vertical tracking remain visible at normal viewing size.
