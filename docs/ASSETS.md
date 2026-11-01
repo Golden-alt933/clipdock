@@ -4,6 +4,8 @@
 
 The artwork fills the page background. The graphite camera, RGB mechanical keyboard, timeline, and waveform are original decorative SVG elements with material shading and layered details. Cursor proximity adds tilt, repulsion, and a lighting response; the artwork stays behind the download controls. ClipDock is a downloader; these illustrations do not represent a video-editing feature.
 
+Cloud sway and eye tracking use masked copies of the same local artwork. The eye layers preserve the original marble texture and stay aligned with the background's cover crop; no additional image service or animation library is used.
+
 ## Typeface
 
 Manrope is self-hosted as `clipdock/static/manrope-latin.woff2`, using the Latin variable-font subset from [Google Fonts](https://fonts.google.com/specimen/Manrope). The unmodified [Open Font License](https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt) is bundled in `clipdock/static/Manrope-OFL.txt`. No font service is contacted at runtime.

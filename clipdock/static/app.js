@@ -138,18 +138,43 @@ function updateNavigation() {
 window.addEventListener('hashchange', updateNavigation);
 function initializeAmbientResponse() {
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const scene = document.querySelector('.sky-scene');
+  const image = document.querySelector('.scene-image');
+  const details = document.querySelector('.scene-details');
+  const eyes = [...document.querySelectorAll('.eye-iris')].map(element => ({
+    element, x:Number(element.dataset.eyeX), y:Number(element.dataset.eyeY),
+    rangeX:Number(element.dataset.eyeRangeX), rangeY:Number(element.dataset.eyeRangeY),
+    current:{x:0,y:0}, target:{x:0,y:0}
+  }));
   const states = [...document.querySelectorAll('.floating-object')].map((element, index) => ({
     element, layer: element.querySelector('.object-response'), depth: [1, .8, .65][index] || 1,
     current: {x:0, y:0, rx:0, ry:0, glow:0}, target: {x:0, y:0, rx:0, ry:0, glow:0}
   }));
-  let paused = true, pointer = null, dirty = false, frame = null, previousTime = 0;
+  let paused = true, pointer = null, gazePointer = null, portrait = null, dirty = false, frame = null, previousTime = 0;
+  function alignPortrait() {
+    if (!image.naturalWidth || !image.naturalHeight) return;
+    const box = image.getBoundingClientRect(), host = scene.getBoundingClientRect();
+    const scale = Math.max(box.width / image.naturalWidth, box.height / image.naturalHeight);
+    const [positionX, positionY] = getComputedStyle(image).objectPosition.split(' ').map(value => Number.parseFloat(value) / 100);
+    const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+    const left = box.x - host.x + (box.width - width) * (Number.isFinite(positionX) ? positionX : .5);
+    const top = box.y - host.y + (box.height - height) * (Number.isFinite(positionY) ? positionY : .5);
+    portrait = {left:left + host.x, top:top + host.y, scale};
+    Object.assign(details.style, {left:`${left}px`, top:`${top}px`, width:`${width}px`, height:`${height}px`});
+    details.classList.add('is-aligned');
+    dirty = true; schedule();
+  }
   function reset() {
     if (frame !== null) cancelAnimationFrame(frame);
-    frame = null; previousTime = 0; pointer = null; dirty = false;
+    frame = null; previousTime = 0; pointer = null; gazePointer = null; dirty = false;
     states.forEach(state => {
       for (const key of Object.keys(state.current)) state.current[key] = state.target[key] = 0;
       state.layer.style.removeProperty('transform');
       state.layer.style.removeProperty('--pointer-glow');
+    });
+    eyes.forEach(eye => {
+      eye.current.x = eye.current.y = eye.target.x = eye.target.y = 0;
+      eye.element.style.removeProperty('transform');
     });
   }
   function schedule() {
@@ -176,6 +201,14 @@ function initializeAmbientResponse() {
           rx: ny * influence * 11, ry: -nx * influence * 14, glow: influence
         });
       });
+      eyes.forEach(eye => {
+        const dx = gazePointer && portrait ? gazePointer.x - portrait.left - eye.x * portrait.scale : 0;
+        const dy = gazePointer && portrait ? gazePointer.y - portrait.top - eye.y * portrait.scale : 0;
+        const distance = Math.hypot(dx,dy);
+        const strength = Math.min(1, distance / 160);
+        eye.target.x = dx / (distance || 1) * eye.rangeX * strength;
+        eye.target.y = dy / (distance || 1) * eye.rangeY * strength;
+      });
       dirty = false;
     }
     const blend = 1 - Math.exp(-Math.min(40, previousTime ? time - previousTime : 16) / 90);
@@ -191,16 +224,29 @@ function initializeAmbientResponse() {
       state.layer.style.transform = `translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, 0) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg)`;
       state.layer.style.setProperty('--pointer-glow', glow.toFixed(3));
     });
+    eyes.forEach(eye => {
+      for (const key of ['x','y']) {
+        const difference = eye.target[key] - eye.current[key];
+        if (Math.abs(difference) > .005) { eye.current[key] += difference * blend; unsettled = true; }
+        else eye.current[key] = eye.target[key];
+      }
+      eye.element.style.transform = `translate(${eye.current.x.toFixed(3)}px, ${eye.current.y.toFixed(3)}px)`;
+    });
     if (unsettled) schedule(); else previousTime = 0;
   }
   window.addEventListener('pointermove', event => {
     if (paused || !finePointer.matches || event.pointerType === 'touch') return;
-    pointer = {x:event.clientX, y:event.clientY}; dirty = true; schedule();
+    pointer = gazePointer = {x:event.clientX, y:event.clientY}; dirty = true; schedule();
   }, {passive:true});
   function leave() { pointer = null; dirty = true; schedule(); }
   document.documentElement.addEventListener('pointerleave', leave);
   window.addEventListener('blur', leave);
-  window.addEventListener('resize', () => { if (pointer) { dirty = true; schedule(); } }, {passive:true});
+  window.addEventListener('resize', alignPortrait, {passive:true});
+  // Media-query crop changes can settle after the window's resize event.
+  window.matchMedia('(max-width: 760px)').addEventListener('change', alignPortrait);
+  if ('ResizeObserver' in window) new ResizeObserver(alignPortrait).observe(image);
+  image.addEventListener('load', alignPortrait);
+  alignPortrait();
   finePointer.addEventListener('change', reset);
   return {setPaused(value) { paused = value; if (paused || !finePointer.matches) reset(); }};
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 — 2026-11-01
+
+- Slight independent swaying of the existing cloud areas while the statue stays still.
+- Marble eyes track the cursor across the whole page using photo-textured, feathered eye layers.
+- Eye and cloud layers stay aligned with the background when resizing or changing device orientation.
+- Eye tracking shares the existing cursor animation loop and respects pause, reduced-motion, hidden tabs, and touch input.
+
 ## 0.7.0 — 2026-11-01
 
 - Dark graphite camera with layered lens optics, mechanical keycaps with RGB lighting, and a dark editing timeline with colored tracks.

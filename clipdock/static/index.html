@@ -35,6 +35,29 @@
 </svg>
 <div class="sky-scene" aria-hidden="true">
   <img class="scene-image" src="/static/apollo-sky.webp" alt="" width="2022" height="778" fetchpriority="high">
+  <svg class="scene-details" viewBox="0 0 2022 778" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="left-cloud-fade"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+      <linearGradient id="lower-cloud-fade" x1="0" y1="550" x2="0" y2="778" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000"/><stop offset=".25" stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient>
+      <mask id="cloud-left-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2022" height="778"><rect width="2022" height="778" fill="#000"/><ellipse cx="230" cy="355" rx="490" ry="250" fill="url(#left-cloud-fade)"/></mask>
+      <mask id="cloud-lower-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2022" height="778"><rect width="2022" height="778" fill="url(#lower-cloud-fade)"/></mask>
+      <filter id="eye-edge-feather" x="-15%" y="-30%" width="130%" height="160%"><feGaussianBlur stdDeviation=".8"/></filter>
+      <mask id="near-eye-aperture" maskUnits="userSpaceOnUse" x="1258" y="205" width="55" height="30"><path d="M1262.4 225.6C1266.3 219.6 1266.5 210.6 1274.6 209.4C1285 208.8 1297.4 214.5 1307.5 219.2C1298 224.5 1281 229.7 1262.4 227.4Z" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
+      <mask id="far-eye-aperture" maskUnits="userSpaceOnUse" x="1194" y="228" width="18" height="26"><path d="M1197.6 235.7Q1200.4 230.4 1208.1 232.2L1204.7 246.3Q1200.4 251 1198.8 245Z" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
+    </defs>
+    <g mask="url(#cloud-left-mask)"><g class="cloud-layer cloud-layer-far"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g></g>
+    <g mask="url(#cloud-lower-mask)"><g class="cloud-layer cloud-layer-near"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g></g>
+    <g class="eye-socket" mask="url(#near-eye-aperture)">
+      <g class="eye-iris" data-eye-x="1275" data-eye-y="215" data-eye-range-x="4.5" data-eye-range-y="1.4">
+        <image href="/static/apollo-sky.webp" width="2022" height="778"/>
+      </g>
+    </g>
+    <g class="eye-socket" mask="url(#far-eye-aperture)">
+      <g class="eye-iris" data-eye-x="1202" data-eye-y="238" data-eye-range-x="1.1" data-eye-range-y="1.1">
+        <image href="/static/apollo-sky.webp" width="2022" height="778"/>
+      </g>
+    </g>
+  </svg>
   <div class="scene-wash"></div>
 </div>
 <div class="ambient-elements" aria-hidden="true">
