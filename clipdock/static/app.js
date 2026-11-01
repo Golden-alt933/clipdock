@@ -143,9 +143,14 @@ function initializeAmbientResponse() {
   const details = document.querySelector('.scene-details');
   const eyes = [...document.querySelectorAll('.eye-iris')].map(element => ({
     element, x:Number(element.dataset.eyeX), y:Number(element.dataset.eyeY),
-    rangeX:Number(element.dataset.eyeRangeX), rangeY:Number(element.dataset.eyeRangeY),
-    current:{x:0,y:0}, target:{x:0,y:0}
+    rangeX:Number(element.dataset.eyeRangeX), rangeY:Number(element.dataset.eyeRangeY)
   }));
+  const gaze = {current:{x:0,y:0}, target:{x:0,y:0}};
+  const gazeOrigin = {
+    x:eyes.reduce((sum,eye) => sum + eye.x, 0) / (eyes.length || 1),
+    y:eyes.reduce((sum,eye) => sum + eye.y, 0) / (eyes.length || 1)
+  };
+  eyes.forEach(eye => { eye.element.style.transformOrigin = `${eye.x}px ${eye.y}px`; });
   const states = [...document.querySelectorAll('.floating-object')].map((element, index) => ({
     element, layer: element.querySelector('.object-response'), depth: [1, .8, .65][index] || 1,
     current: {x:0, y:0, rx:0, ry:0, glow:0}, target: {x:0, y:0, rx:0, ry:0, glow:0}
@@ -172,10 +177,8 @@ function initializeAmbientResponse() {
       state.layer.style.removeProperty('transform');
       state.layer.style.removeProperty('--pointer-glow');
     });
-    eyes.forEach(eye => {
-      eye.current.x = eye.current.y = eye.target.x = eye.target.y = 0;
-      eye.element.style.removeProperty('transform');
-    });
+    gaze.current.x = gaze.current.y = gaze.target.x = gaze.target.y = 0;
+    eyes.forEach(eye => eye.element.style.removeProperty('transform'));
   }
   function schedule() {
     if (!paused && finePointer.matches && frame === null) frame = requestAnimationFrame(animate);
@@ -201,17 +204,19 @@ function initializeAmbientResponse() {
           rx: ny * influence * 11, ry: -nx * influence * 14, glow: influence
         });
       });
-      eyes.forEach(eye => {
-        const dx = gazePointer && portrait ? gazePointer.x - portrait.left - eye.x * portrait.scale : 0;
-        const dy = gazePointer && portrait ? gazePointer.y - portrait.top - eye.y * portrait.scale : 0;
-        const distance = Math.hypot(dx,dy);
-        const strength = Math.min(1, distance / 160);
-        eye.target.x = dx / (distance || 1) * eye.rangeX * strength;
-        eye.target.y = dy / (distance || 1) * eye.rangeY * strength;
-      });
+      // A shared, distant focus avoids cross-eyed aiming at the screen plane.
+      const dx = gazePointer && portrait ? gazePointer.x - portrait.left - gazeOrigin.x * portrait.scale : 0;
+      const dy = gazePointer && portrait ? gazePointer.y - portrait.top - gazeOrigin.y * portrait.scale : 0;
+      const horizontal = Math.tanh(dx / Math.max(680, innerWidth * .7));
+      const vertical = Math.tanh(dy / Math.max(560, innerHeight * .9));
+      const limit = Math.max(1, Math.hypot(horizontal, vertical));
+      gaze.target.x = horizontal / limit;
+      gaze.target.y = vertical / limit;
       dirty = false;
     }
-    const blend = 1 - Math.exp(-Math.min(40, previousTime ? time - previousTime : 16) / 90);
+    const elapsed = Math.min(40, previousTime ? time - previousTime : 16);
+    const blend = 1 - Math.exp(-elapsed / 90);
+    const gazeBlend = 1 - Math.exp(-elapsed / 60);
     previousTime = time;
     let unsettled = false;
     states.forEach(state => {
@@ -224,13 +229,17 @@ function initializeAmbientResponse() {
       state.layer.style.transform = `translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, 0) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg)`;
       state.layer.style.setProperty('--pointer-glow', glow.toFixed(3));
     });
+    for (const key of ['x','y']) {
+      const difference = gaze.target[key] - gaze.current[key];
+      if (Math.abs(difference) > .002) { gaze.current[key] += difference * gazeBlend; unsettled = true; }
+      else gaze.current[key] = gaze.target[key];
+    }
     eyes.forEach(eye => {
-      for (const key of ['x','y']) {
-        const difference = eye.target[key] - eye.current[key];
-        if (Math.abs(difference) > .005) { eye.current[key] += difference * blend; unsettled = true; }
-        else eye.current[key] = eye.target[key];
-      }
-      eye.element.style.transform = `translate(${eye.current.x.toFixed(3)}px, ${eye.current.y.toFixed(3)}px)`;
+      const x = gaze.current.x * eye.rangeX, y = gaze.current.y * eye.rangeY;
+      // Slight foreshortening keeps the iris on the curved eyeball surface.
+      const scaleX = 1 - .055 * Math.abs(gaze.current.x);
+      const scaleY = 1 - .025 * Math.abs(gaze.current.y);
+      eye.element.style.transform = `translate(${x.toFixed(3)}px, ${y.toFixed(3)}px) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`;
     });
     if (unsettled) schedule(); else previousTime = 0;
   }

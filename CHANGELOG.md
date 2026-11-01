@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2 — 2026-11-01
+
+- Both eyes now share one distant focus instead of independently converging toward the cursor near the face.
+- Gradual viewport-based gaze mapping replaces the previous early travel limit, with smaller horizontal movement and restrained vertical movement.
+- Added slight iris foreshortening and a quicker, non-overshooting response while keeping eye whites and eyelids stationary.
+
 ## 0.8.1 — 2026-11-01
 
 - Fixed eye tracking moving the whole eye-region texture: only the iris and pupil cutouts now follow the cursor.

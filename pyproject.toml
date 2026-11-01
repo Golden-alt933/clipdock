@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clipdock"
-version = "0.8.1"
+version = "0.8.2"
 description = "A free local video downloader with a browser interface and command-line tools"
 readme = "README.md"
 requires-python = ">=3.11"

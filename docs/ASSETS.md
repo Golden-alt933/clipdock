@@ -6,6 +6,8 @@ The artwork fills the page background. The graphite camera, RGB mechanical keybo
 
 Cloud sway and eye tracking use masked copies of the same local artwork. Only small iris/pupil cutouts move inside fixed eye apertures; stationary backing textures keep the eye whites and eyelids still. The layers preserve the marble texture and stay aligned with the background's cover crop; no additional image service or animation library is used.
 
+Both eyes share one bounded gaze direction. Subtle perspective scaling and a short settling time keep the irises attached to the eye surface, with a smaller range for the partly hidden eye.
+
 ## Typeface
 
 Manrope is self-hosted as `clipdock/static/manrope-latin.woff2`, using the Latin variable-font subset from [Google Fonts](https://fonts.google.com/specimen/Manrope). The unmodified [Open Font License](https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt) is bundled in `clipdock/static/Manrope-OFL.txt`. No font service is contacted at runtime.
