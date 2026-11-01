@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-11-01
+
+- Dark creator workspace with warm orange accents, editorial typography, and responsive desktop/mobile layouts.
+- Search saved media by title, platform, or output format, alongside the existing download filters.
+- Paste-link button with a keyboard fallback when clipboard access is unavailable.
+- Clear source-reading and connection states, keyboard focus styles, and reduced-motion support.
+- Updated the README screenshot to match the new interface.
+
 ## 0.3.0 — 2026-11-01
 
 - Complete hosted website mode with bundled Python, Node.js, FFmpeg, and browser interface.

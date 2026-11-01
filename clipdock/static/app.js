@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const activeStates = new Set(['queued','starting','downloading','processing']);
-let config, preview, jobs = [], filter = 'all', timer, renderKey = '', online = true;
+let config, preview, jobs = [], filter = 'all', query = '', timer, renderKey = '', online = true;
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const icon = name => `<svg class="icon" aria-hidden="true"><use href="#${name}"/></svg>`;
 function duration(seconds) { if (!Number.isFinite(seconds)) return ''; const minutes = Math.floor(seconds / 60); return `${minutes}:${String(Math.floor(seconds % 60)).padStart(2,'0')}`; }
@@ -8,6 +8,12 @@ function bytes(value) { if (!value) return ''; return value > 1048576 ? `${(valu
 function thumbnail(value) { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; } }
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(timer); timer = setTimeout(() => $('toast').hidden = true, 4500); }
 function showError(message) { $('form-error').textContent = message; $('form-error').hidden = !message; }
+function captureStatus(message) { $('capture-status').textContent = message; }
+function connectionStatus(connected) {
+  online = connected;
+  $('mode-label').textContent = connected ? (config?.hosted ? 'Online workspace' : 'Running on your computer') : 'Workspace disconnected';
+  $('mode-label').closest('.local-badge').classList.toggle('offline', !connected);
+}
 async function api(path, body) {
   const response = await fetch(path, body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json','X-ClipDock-Token':config?.token || ''},body:JSON.stringify(body)});
   if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('The service is waking up or is temporarily unavailable. Try again in a moment.');
@@ -18,7 +24,7 @@ async function api(path, body) {
 async function initialize() {
   try {
     config = await api('/api/config');
-    $('mode-label').textContent = config.hosted ? 'Free online video saver' : 'Running on your computer';
+    connectionStatus(true);
     if (config.hosted) {
       $('open-folder').hidden = true;
       $('privacy-label').textContent = 'No installation needed';
@@ -27,13 +33,14 @@ async function initialize() {
       $('hosted-limits').textContent = 'Free service: videos up to 10 minutes / 100 MB. Download your file within 1 hour. The service may need a minute to wake up.';
     }
     $('engine-label').textContent = `ClipDock / Engine ${config.engine}`;
-    if (!config.ffmpeg || !config.node) { $('dependency-warning').hidden = false; $('dependency-warning').textContent = `Missing ${[!config.ffmpeg && 'FFmpeg',!config.node && 'Node.js'].filter(Boolean).join(' and ')}. Check README.txt, then restart the app.`; }
+    if (!config.ffmpeg || !config.node) { $('dependency-warning').hidden = false; $('dependency-warning').textContent = `Missing ${[!config.ffmpeg && 'FFmpeg',!config.node && 'Node.js'].filter(Boolean).join(' and ')}. Check the setup guide, then restart ClipDock.`; }
     await refresh();
-  } catch (error) { showError('Could not connect to ClipDock. Refresh this page in a moment.'); }
+  } catch (error) { connectionStatus(false); showError('Could not connect to ClipDock. Refresh this page in a moment.'); }
 }
 $('link-form').addEventListener('submit', async event => {
   event.preventDefault(); showError(''); preview = null; $('video-preview').hidden = true;
-  const button = $('inspect-button'); button.disabled = true; button.textContent = 'Finding…'; button.classList.add('spin');
+  const button = $('inspect-button'); button.disabled = true; button.textContent = 'Reading your link…'; button.classList.add('spin');
+  captureStatus('READING SOURCE'); $('link-form').setAttribute('aria-busy', 'true');
   const submittedUrl = $('url').value.trim();
   try {
     const result = await api('/api/inspect', {url: submittedUrl});
@@ -44,10 +51,20 @@ $('link-form').addEventListener('submit', async event => {
     $('preview-details').textContent = [preview.creator,duration(preview.duration)].filter(Boolean).join(' · ');
     const image = thumbnail(preview.thumbnail); $('preview-img').hidden = !image; if (image) $('preview-img').src = image;
     $('video-preview').hidden = false;
-  } catch (error) { showError(error.message); }
-  finally { button.disabled = false; button.innerHTML = `Find video ${icon('arrow')}`; button.classList.remove('spin'); }
+    captureStatus('SOURCE FOUND'); updateFormat();
+  } catch (error) { if ($('url').value.trim() === submittedUrl) { showError(error.message); captureStatus('CHECK YOUR LINK'); } }
+  finally { button.disabled = false; button.innerHTML = `<span>Find video</span>${icon('arrow')}`; button.classList.remove('spin'); $('link-form').setAttribute('aria-busy', 'false'); }
 });
-$('url').addEventListener('input', () => { preview = null; $('video-preview').hidden = true; showError(''); });
+$('url').addEventListener('input', () => { preview = null; $('video-preview').hidden = true; showError(''); captureStatus($('url').value.trim() ? 'LINK READY' : 'READY FOR A LINK'); });
+$('paste-button').addEventListener('click', async () => {
+  try {
+    if (!navigator.clipboard?.readText) throw new Error('Clipboard unavailable');
+    const text = (await navigator.clipboard.readText()).trim();
+    if (!text) { toast('Your clipboard is empty. Copy a video link first.'); return; }
+    $('url').value = text; $('url').dispatchEvent(new Event('input')); $('url').focus();
+    toast('Link pasted. Find the video when you are ready.');
+  } catch { $('url').focus(); toast('Paste directly into the link field with Ctrl+V or ⌘V.'); }
+});
 function updateFormat() {
   const format = $('format').value;
   $('video-quality-field').hidden = format !== 'mp4';
@@ -64,23 +81,25 @@ $('download-button').addEventListener('click', async () => {
   const button = $('download-button'); button.disabled = true; showError('');
   try {
     await api('/api/jobs', {url:preview.url,format:$('format').value,quality:$('quality').value,audio_bitrate:$('audio-bitrate').value});
-    filter = 'all'; updateFilters(); toast('Added to your downloads.'); await refresh();
+    filter = 'all'; query = ''; $('library-search').value = ''; updateFilters(); toast('Added to your downloads.'); await refresh();
     $('library-heading').scrollIntoView({behavior:'smooth',block:'center'});
   } catch (error) { showError(error.message); }
   finally { button.disabled = false; }
 });
 function updateFilters() { document.querySelectorAll('.filter').forEach(button => {button.classList.toggle('active',button.dataset.filter === filter);button.setAttribute('aria-pressed',String(button.dataset.filter === filter));}); }
 document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => { filter = button.dataset.filter; updateFilters(); renderKey = ''; render(); }));
+$('library-search').addEventListener('input', () => { query = $('library-search').value.trim().toLowerCase(); renderKey = ''; render(); });
 function render() {
   $('job-count').textContent = jobs.length;
   $('active-count').textContent = jobs.filter(job => activeStates.has(job.status)).length;
-  const visible = jobs.filter(job => filter === 'all' || (filter === 'active' ? activeStates.has(job.status) : job.status === 'complete'));
+  const visible = jobs.filter(job => (filter === 'all' || (filter === 'active' ? activeStates.has(job.status) : job.status === 'complete')) && (!query || [job.title, job.platform, job.format === 'audio' ? 'source audio' : job.format].join(' ').toLowerCase().includes(query)));
   const key = JSON.stringify(visible);
   if (key === renderKey) return;
   renderKey = key;
   $('empty').hidden = visible.length > 0;
-  $('empty').querySelector('h3').textContent = filter === 'all' ? 'Your next good find belongs here.' : filter === 'active' ? 'Nothing in the queue.' : 'Your finished downloads will appear here.';
-  $('empty').querySelector('p').textContent = filter === 'active' ? 'Add another link whenever inspiration strikes.' : 'Paste a link above to save a video.';
+  $('empty').querySelector('h3').textContent = query ? 'No matching clips. Keep looking.' : filter === 'all' ? 'A little empty. A lot of possibility.' : filter === 'active' ? 'All quiet on the timeline.' : 'Your finished files will land here.';
+  $('empty').querySelector('p').textContent = query ? 'Try a title, a platform, or another format.' : filter === 'active' ? 'Your next download will appear here while it is in progress.' : 'Drop a link above. Keep something worth creating with.';
+  $('empty').querySelector('.empty-action').hidden = Boolean(query);
   const statusNames = {queued:'Queued',starting:'Reading video…',downloading:'Downloading',processing:'Joining / converting…',complete:'Saved',error:'Could not save',cancelled:'Cancelled',interrupted:'Interrupted'};
   $('jobs').innerHTML = visible.map(job => {
     const active = activeStates.has(job.status), done = job.status === 'complete';
@@ -102,11 +121,20 @@ $('jobs').addEventListener('click', async event => {
   } catch (error) { toast(error.message); button.disabled = false; }
 });
 $('open-folder').addEventListener('click', async () => { try { const result = await api('/api/open-folder', {}); if (!result.ok) toast(result.path); } catch (error) { toast(error.message); } });
-async function refresh() { try { jobs = await api('/api/jobs'); online = true; render(); } catch { if (online) toast('Connection lost. Restart ClipDock or refresh this page.'); online = false; } }
+async function refresh() { try { jobs = await api('/api/jobs'); if (config) connectionStatus(true); render(); } catch { if (online) toast('Connection lost. Restart ClipDock or refresh this page.'); connectionStatus(false); } }
 async function poll() {
   await refresh();
   const active = jobs.some(job => activeStates.has(job.status));
   const delay = document.hidden ? 30000 : config?.hosted ? (active ? 2000 : 15000) : 1500;
   setTimeout(poll, delay);
 }
-updateFilters(); initialize(); setTimeout(poll, 1500);
+function updateNavigation() {
+  const target = ['#library', '#how-it-works'].includes(location.hash) ? location.hash : '#workspace';
+  document.querySelectorAll('.rail-link').forEach(link => {
+    const selected = link.getAttribute('href') === target;
+    link.classList.toggle('selected', selected);
+    if (selected) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current');
+  });
+}
+window.addEventListener('hashchange', updateNavigation);
+updateNavigation(); updateFormat(); updateFilters(); initialize(); setTimeout(poll, 1500);

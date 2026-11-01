@@ -4,7 +4,7 @@
 
 Download public **YouTube videos & Shorts, Instagram Reels, and Pinterest video Pins**. Use the terminal or a browser interface on your computer. Free, open source, with no ads or ClipDock account.
 
-![ClipDock interface](docs/preview.png)
+![ClipDock dark creator workspace](docs/preview.png)
 
 ## Install once
 

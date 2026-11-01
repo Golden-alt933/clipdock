@@ -1,6 +1,142 @@
-@media (max-width: 520px) {
-  .job-main { flex-basis: calc(100% - 80px); }
-  .job-status { margin-left: 68px; text-align: left; }
-  .job-actions { margin-left: auto; }
-  .job-thumb.empty-icon { margin: 0; }
+@media (max-width: 1190px) {
+  .shell { padding-left: 112px; padding-right: 32px; }
+  .hero { gap: 32px; }
+  .hero h1 { font-size: 62px; letter-spacing: -3px; }
+  .hero-copy > .eyebrow { font-size: 8px; letter-spacing: 1px; }
+  .save-card { padding-left: 22px; padding-right: 22px; }
+  .save-card > h2 { font-size: 18px; }
+  .workflow-strip { grid-template-columns: 1.3fr repeat(3, 1fr); gap: 12px; }
+  .workflow-format { padding-left: 15px; gap: 10px; }
+  .workflow-format span { font-size: 9px; }
+  .how { gap: 25px; }
+}
+@media (max-width: 960px) {
+  .rail { width: 64px; }
+  .rail-logo { width: 36px; height: 36px; border-radius: 10px; }
+  .shell { padding-left: 94px; padding-right: 30px; }
+  .hero { gap: 24px; padding: 45px 0; }
+  .hero h1 { font-size: 49px; letter-spacing: -2.7px; }
+  .hero h1 em { letter-spacing: -2.5px; }
+  .intro { font-size: 12px; }
+  .intro br { display: none; }
+  .platforms { gap: 6px; }
+  .platforms > span { padding: 7px; font-size: 9px; gap: 5px; }
+  .format-note { font-size: 7px; gap: 8px; flex-wrap: wrap; }
+  .card-indicator { font-size: 7px; letter-spacing: 0; }
+  .card-heading .small-label { font-size: 8px; }
+  .save-card { padding: 22px 18px 0; }
+  .save-card > h2 { font-size: 17px; margin: 22px 0; }
+  .card-footer { font-size: 8px; flex-wrap: wrap; }
+  .workflow-strip { grid-template-columns: repeat(3, 1fr); row-gap: 22px; }
+  .workflow-intro { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+  .workflow-intro p { margin: 0; font-size: 11px; }
+  .workflow-format { border-left: 0; padding-left: 0; }
+  .how { grid-template-columns: repeat(3, 1fr); }
+  .how-intro { grid-column: 1 / -1; }
+  .how h2 br { display: none; }
+  .job { grid-template-columns: 80px minmax(0, 1fr) 78px 85px; gap: 12px; }
+  .job-thumb { width: 80px; height: 58px; }
+  .job-actions a, .job-actions button { padding: 9px; }
+  .job-status { font-size: 8px; }
+  footer { flex-wrap: wrap; gap: 12px; }
+  footer p { order: 3; text-align: left; max-width: none; width: 100%; }
+}
+@media (max-width: 760px) {
+  html { scroll-padding-top: 20px; }
+  .rail { display: none; }
+  .shell { padding: 0 24px; max-width: 650px; }
+  .topbar { height: 76px; gap: 13px; }
+  .brand { font-size: 26px; }
+  .workspace-label { font-size: 8px; letter-spacing: 1px; }
+  .local-badge { font-size: 9px; gap: 6px; }
+  .hero { grid-template-columns: 1fr; gap: 31px; padding: 40px 0 34px; }
+  .hero-copy > .eyebrow { font-size: 8px; letter-spacing: 1.3px; margin-bottom: 22px; }
+  .hero h1 { font-size: clamp(58px, 10.5vw, 78px); line-height: 1; letter-spacing: -3.5px; margin-bottom: 19px; }
+  .hero h1 em { letter-spacing: -3px; }
+  .intro { font-size: 13px; line-height: 1.8; max-width: 350px; }
+  .intro br { display: initial; }
+  .platforms { gap: 8px; margin: 23px 0 0; }
+  .platforms > span { font-size: 10px; padding: 7px 9px; gap: 6px; }
+  .format-note { display: none; }
+  .save-card { padding: 23px 23px 0; border-radius: 12px; }
+  .card-heading .small-label { font-size: 9px; }
+  .card-indicator { font-size: 8px; letter-spacing: .5px; }
+  .save-card > h2 { font-size: 20px; margin: 24px 0; }
+  .url-row input { font-size: 16px; padding: 12px 0; }
+  .url-row { min-height: 53px; }
+  .primary { min-height: 48px; }
+  .paste-button { height: 36px; width: 36px; }
+  .input-hint { font-size: 10px; }
+  .card-footer { font-size: 9px; }
+  .workflow-strip { gap: 20px 12px; padding: 21px 0; }
+  .workflow-intro { display: block; }
+  .workflow-intro p { margin-top: 6px; font-size: 12px; }
+  .workflow-format { gap: 8px; align-items: flex-start; }
+  .workflow-format > .icon { width: 16px; height: 16px; }
+  .workflow-format strong { font-size: 10px; }
+  .workflow-format span { font-size: 9px; line-height: 1.6; max-width: 90px; }
+  .library { padding-top: 34px; }
+  .section-heading h2 { font-size: 28px; margin-bottom: 23px; }
+  .library-toolbar { flex-wrap: wrap; gap: 10px; }
+  .filters { gap: 22px; order: 2; width: 100%; }
+  .filter { font-size: 11px; min-height: 44px; padding: 12px 0 14px; }
+  .library-search { padding-bottom: 0; width: 100%; margin: 0 0 2px; border: 1px solid #34353b; border-radius: 6px; padding: 9px 12px; background: #17181b; }
+  .library-search input { flex: 1; min-width: 0; font-size: 16px; }
+  select { font-size: 16px; }
+  .download-options { grid-template-columns: 1fr; gap: 14px; }
+  .empty { padding: 36px 20px 30px; margin-top: 17px; }
+  .empty h3 { font-size: 13px; }
+  .empty p { font-size: 11px; max-width: 260px; margin: auto; }
+  .library-caption { font-size: 7px; letter-spacing: .6px; }
+  .how { padding-top: 39px; gap: 25px 20px; grid-template-columns: 1fr 1fr; }
+  .how-intro { grid-column: 1 / -1; }
+  .how h2 { font-size: 24px; }
+  .how p { font-size: 11px; }
+  .how-step:last-child { grid-column: 1 / -1; }
+  .how-step:last-child p { max-width: 330px; }
+  .job { grid-template-columns: 68px minmax(0, 1fr); gap: 10px 14px; padding: 18px 0; }
+  .job-thumb { width: 68px; height: 58px; grid-row: 1; align-self: start; }
+  .job-main { grid-column: 2; }
+  .job-title { font-size: 12px; margin-bottom: 5px; }
+  .job-meta { font-size: 9px; }
+  .job-status { grid-column: 2; grid-row: 2; justify-self: start; text-align: left; font-size: 9px; padding-right: 85px; }
+  .job-actions { grid-column: 2; grid-row: 2; }
+  .job-actions a, .job-actions button { min-height: 38px; }
+  footer { padding-top: 20px; padding-bottom: 24px; }
+  #toast { left: 50%; width: max-content; max-width: calc(100vw - 32px); }
+  .skip-link { left: 16px; }
+}
+@media (max-width: 440px) {
+  .shell { padding: 0 20px; }
+  .workspace-label, .header-divider { display: none; }
+  .local-badge { font-size: 8px; }
+  .hero { padding-top: 32px; }
+  .hero h1 { font-size: 62px; }
+  .save-card { padding: 22px 17px 0; }
+  .save-card > h2 { font-size: 18px; }
+  .card-indicator { font-size: 7px; letter-spacing: .3px; }
+  .card-footer { font-size: 8px; gap: 8px; }
+  .workflow-format { gap: 6px; }
+  .workflow-format strong { font-size: 9px; }
+  .workflow-format span { font-size: 8px; }
+  .workflow-format > .icon { width: 14px; height: 14px; }
+  .library-caption > span:last-child { display: none; }
+  .secondary { font-size: 10px; padding: 9px 10px; }
+  .secondary .folder-arrow { display: none; }
+  .filters { gap: 20px; }
+  .filter { font-size: 10px; }
+  select { padding-left: 10px; padding-right: 8px; }
+  .preview-media img { width: 72px; height: 60px; }
+  .preview-media h3 { font-size: 11px; }
+}
+@media (max-width: 350px) {
+  .shell { padding: 0 15px; }
+  .hero h1 { font-size: 55px; }
+  .hero-copy > .eyebrow { letter-spacing: .7px; }
+  .platforms { gap: 6px; }
+  .platforms > span { font-size: 9px; padding: 7px; }
+  .save-card > h2 { font-size: 16px; }
+  .card-footer { font-size: 7px; }
+  .card-indicator { letter-spacing: 0; font-size: 6px; }
+  .workflow-format { flex-direction: column; gap: 8px; }
 }
