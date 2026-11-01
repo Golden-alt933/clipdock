@@ -2,7 +2,7 @@
 
 `clipdock/static/apollo-sky.webp` is a decorative, Apollo-inspired illustration generated with the built-in image generation tool for ClipDock. It is not a photograph of a museum object. The full-size generated PNG was encoded as a 2022 × 778 WebP (182 KB), without cropping or resizing, and is served locally with the app.
 
-The artwork now fills the page background. Camera, keyboard, timeline, and waveform illustrations are decorative SVG elements. ClipDock is a downloader; these do not represent a video-editing feature.
+The artwork fills the page background. The graphite camera, RGB mechanical keyboard, timeline, and waveform are original decorative SVG elements with material shading and layered details. Cursor proximity adds tilt, repulsion, and a lighting response; the artwork stays behind the download controls. ClipDock is a downloader; these illustrations do not represent a video-editing feature.
 
 ## Typeface
 

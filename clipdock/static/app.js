@@ -136,7 +136,75 @@ function updateNavigation() {
   });
 }
 window.addEventListener('hashchange', updateNavigation);
-function initializeMotion() {
+function initializeAmbientResponse() {
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const states = [...document.querySelectorAll('.floating-object')].map((element, index) => ({
+    element, layer: element.querySelector('.object-response'), depth: [1, .8, .65][index] || 1,
+    current: {x:0, y:0, rx:0, ry:0, glow:0}, target: {x:0, y:0, rx:0, ry:0, glow:0}
+  }));
+  let paused = true, pointer = null, dirty = false, frame = null, previousTime = 0;
+  function reset() {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null; previousTime = 0; pointer = null; dirty = false;
+    states.forEach(state => {
+      for (const key of Object.keys(state.current)) state.current[key] = state.target[key] = 0;
+      state.layer.style.removeProperty('transform');
+      state.layer.style.removeProperty('--pointer-glow');
+    });
+  }
+  function schedule() {
+    if (!paused && finePointer.matches && frame === null) frame = requestAnimationFrame(animate);
+  }
+  function animate(time) {
+    frame = null;
+    if (paused || !finePointer.matches) return;
+    if (dirty) {
+      // Read all object bounds before writing transforms to keep layout work batched.
+      const bounds = states.map(state => state.element.getBoundingClientRect());
+      states.forEach((state, index) => {
+        const box = bounds[index];
+        const dx = pointer ? pointer.x - box.x - box.width / 2 : 0;
+        const dy = pointer ? pointer.y - box.y - box.height / 2 : 0;
+        const distance = Math.hypot(dx, dy);
+        const influence = pointer ? Math.max(0, 1 - distance / 260) : 0;
+        const nx = dx / (distance || 1), ny = dy / (distance || 1);
+        const parallaxX = pointer ? (pointer.x / innerWidth - .5) * 7 * state.depth : 0;
+        const parallaxY = pointer ? (pointer.y / innerHeight - .5) * 5 * state.depth : 0;
+        Object.assign(state.target, {
+          x: parallaxX - nx * influence * 26,
+          y: parallaxY - ny * influence * 22,
+          rx: ny * influence * 11, ry: -nx * influence * 14, glow: influence
+        });
+      });
+      dirty = false;
+    }
+    const blend = 1 - Math.exp(-Math.min(40, previousTime ? time - previousTime : 16) / 90);
+    previousTime = time;
+    let unsettled = false;
+    states.forEach(state => {
+      for (const key of Object.keys(state.current)) {
+        const difference = state.target[key] - state.current[key];
+        if (Math.abs(difference) > .005) { state.current[key] += difference * blend; unsettled = true; }
+        else state.current[key] = state.target[key];
+      }
+      const {x,y,rx,ry,glow} = state.current;
+      state.layer.style.transform = `translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, 0) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg)`;
+      state.layer.style.setProperty('--pointer-glow', glow.toFixed(3));
+    });
+    if (unsettled) schedule(); else previousTime = 0;
+  }
+  window.addEventListener('pointermove', event => {
+    if (paused || !finePointer.matches || event.pointerType === 'touch') return;
+    pointer = {x:event.clientX, y:event.clientY}; dirty = true; schedule();
+  }, {passive:true});
+  function leave() { pointer = null; dirty = true; schedule(); }
+  document.documentElement.addEventListener('pointerleave', leave);
+  window.addEventListener('blur', leave);
+  window.addEventListener('resize', () => { if (pointer) { dirty = true; schedule(); } }, {passive:true});
+  finePointer.addEventListener('change', reset);
+  return {setPaused(value) { paused = value; if (paused || !finePointer.matches) reset(); }};
+}
+function initializeMotion(ambientResponse) {
   const nodes = [...document.querySelectorAll('[data-reveal]')];
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const toggle = $('motion-toggle');
@@ -147,6 +215,7 @@ function initializeMotion() {
     observer?.disconnect();
     const paused = preference.matches || userPaused;
     document.documentElement.classList.toggle('ambient-paused', paused);
+    ambientResponse.setPaused(paused || document.hidden);
     toggle.disabled = preference.matches;
     toggle.setAttribute('aria-pressed', String(!paused));
     toggle.title = preference.matches ? 'Reduced motion is enabled in your system settings' : paused ? 'Resume background motion' : 'Pause background motion';
@@ -173,8 +242,11 @@ function initializeMotion() {
     try { localStorage.setItem('clipdock-motion', userPaused ? 'paused' : 'playing'); } catch { /* The toggle still works for this visit. */ }
     synchronize();
   });
-  function updateVisibility() { document.documentElement.classList.toggle('page-hidden', document.hidden); }
+  function updateVisibility() {
+    document.documentElement.classList.toggle('page-hidden', document.hidden);
+    ambientResponse.setPaused(preference.matches || userPaused || document.hidden);
+  }
   document.addEventListener('visibilitychange', updateVisibility);
   updateVisibility();
 }
-initializeMotion(); updateNavigation(); updateFormat(); updateFilters(); initialize(); setTimeout(poll, 1500);
+initializeMotion(initializeAmbientResponse()); updateNavigation(); updateFormat(); updateFilters(); initialize(); setTimeout(poll, 1500);

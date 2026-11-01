@@ -28,11 +28,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .scene-image { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; object-position: 65% center; animation: sky-drift 36s ease-in-out infinite alternate; will-change: transform; }
 .scene-wash { position: absolute; inset: 0; background: linear-gradient(90deg, #e8f5ffb5 0%, #e8f5ff65 38%, #edf7ff0d 68%, #163a5510), linear-gradient(180deg, #e7f4ff18 50%, #e8f4ff6b 100%); }
 .ambient-elements { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.floating-object { position: absolute; filter: drop-shadow(0 14px 22px #1742651a); pointer-events: none; }
-.floating-object > svg { display: block; width: 100%; height: auto; }
-.floating-camera { width: 156px; top: 17%; right: 8%; opacity: .8; animation: camera-float 15s ease-in-out infinite; }
-.floating-keyboard { width: 225px; right: 21%; bottom: 10%; opacity: .65; animation: keyboard-float 19s ease-in-out infinite; }
-.floating-timeline { width: 280px; top: 57%; right: 5%; opacity: .8; animation: timeline-float 21s ease-in-out infinite; }
+.floating-object { position: absolute; pointer-events: none; perspective: 800px; }
+.object-response { --pointer-glow: 0; transform-style: preserve-3d; filter: drop-shadow(0 15px 18px #10243a36) brightness(calc(1 + var(--pointer-glow) * .18)); }
+.object-response > svg { display: block; width: 100%; height: auto; }
+.floating-camera { width: 174px; top: 17%; right: 8%; opacity: .96; animation: camera-float 18s ease-in-out infinite; }
+.floating-keyboard { width: 245px; right: 20%; bottom: 9%; opacity: .94; animation: keyboard-float 23s ease-in-out infinite; }
+.floating-timeline { width: 284px; top: 57%; right: 5%; opacity: .96; animation: timeline-float 26s ease-in-out infinite; }
 .ambient-playhead { animation: playhead-drift 9s ease-in-out infinite alternate; }
 .ambient-paused .scene-image, .ambient-paused .floating-object, .ambient-paused .ambient-playhead,
 .page-hidden .scene-image, .page-hidden .floating-object, .page-hidden .ambient-playhead { animation-play-state: paused; }
@@ -183,9 +184,9 @@ footer p { font-size: 8px; max-width: 440px; text-align: center; margin: 0; }
 #toast:not([hidden]) { animation: toast-in .25s ease-out both; }
 .spin { animation: pulse 1s infinite alternate; }
 @keyframes sky-drift { from { transform: scale(1.015) translate3d(0, 0, 0); } to { transform: scale(1.065) translate3d(-.5%, .4%, 0); } }
-@keyframes camera-float { 0%, 100% { transform: translate3d(0,0,0) rotate(-10deg); } 50% { transform: translate3d(9px,-17px,0) rotate(-5deg); } }
-@keyframes keyboard-float { 0%, 100% { transform: translate3d(0,0,0) rotate(10deg); } 50% { transform: translate3d(-12px,-19px,0) rotate(6deg); } }
-@keyframes timeline-float { 0%, 100% { transform: translate3d(0,0,0) rotate(-7deg); } 50% { transform: translate3d(-8px,15px,0) rotate(-3deg); } }
+@keyframes camera-float { 0%, 100% { transform: translate3d(0,0,0) rotate(-10deg); } 30% { transform: translate3d(25px,-25px,0) rotate(-4deg); } 65% { transform: translate3d(-14px,14px,0) rotate(-12deg); } }
+@keyframes keyboard-float { 0%, 100% { transform: translate3d(0,0,0) rotate(10deg); } 35% { transform: translate3d(-27px,-24px,0) rotate(4deg); } 70% { transform: translate3d(17px,-8px,0) rotate(13deg); } }
+@keyframes timeline-float { 0%, 100% { transform: translate3d(0,0,0) rotate(-7deg); } 40% { transform: translate3d(-23px,22px,0) rotate(-2deg); } 75% { transform: translate3d(14px,-15px,0) rotate(-9deg); } }
 @keyframes playhead-drift { from { transform: translateX(-30px); } to { transform: translateX(65px); } }
 @keyframes preview-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes toast-in { from { opacity: 0; margin-bottom: -6px; } to { opacity: 1; margin-bottom: 0; } }
@@ -201,4 +202,5 @@ footer p { font-size: 8px; max-width: 440px; text-align: center; margin: 0; }
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
   .motion-ready [data-reveal] { opacity: 1; transform: none; }
   .scene-image { will-change: auto; }
+  .object-response { transform: none !important; }
 }

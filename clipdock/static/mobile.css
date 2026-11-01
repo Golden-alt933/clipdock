@@ -21,7 +21,7 @@
   .scene-image { object-position: 65% center; }
   .floating-camera { right: 6%; top: 20%; width: 115px; }
   .floating-keyboard { right: 8%; bottom: 12%; width: 150px; }
-  .floating-timeline { right: 2%; top: 58%; width: 190px; opacity: .55; }
+  .floating-timeline { right: 2%; top: 58%; width: 190px; opacity: .85; }
   .workflow-strip { grid-template-columns: repeat(3, 1fr); gap: 19px 15px; }
   .workflow-intro { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .workflow-intro p { margin: 0; font-size: 11px; }
@@ -51,9 +51,9 @@
   .platforms > span { padding: 8px 11px; font-size: 9px; }
   .scene-image { object-position: 62% center; }
   .scene-wash { background: linear-gradient(180deg, #e7f4ff45, #e9f6ff68 48%, #e9f6ff8a); }
-  .floating-camera { width: 95px; right: -6px; top: 15%; opacity: .5; }
-  .floating-keyboard { width: 140px; right: -22px; bottom: 8%; opacity: .45; }
-  .floating-timeline { width: 165px; right: -30px; top: 55%; opacity: .45; }
+  .floating-camera { width: 95px; right: -6px; top: 15%; opacity: .72; }
+  .floating-keyboard { width: 140px; right: -22px; bottom: 8%; opacity: .72; }
+  .floating-timeline { width: 165px; right: -30px; top: 55%; opacity: .72; }
   .save-card { border-radius: 25px; padding: 24px 20px 0; }
   .card-heading .small-label { font-size: 8px; }
   .card-indicator { font-size: 6px; letter-spacing: .8px; }

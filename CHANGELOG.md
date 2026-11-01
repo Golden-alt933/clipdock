@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — 2026-11-01
+
+- Dark graphite camera with layered lens optics, mechanical keycaps with RGB lighting, and a dark editing timeline with colored tracks.
+- Wider floating paths and smooth cursor-driven tilt, nearby-cursor repulsion, and lighting response.
+- Cursor effects stop when settled and respect the motion toggle, reduced-motion settings, hidden tabs, and touch input.
+- Updated README preview for the darker RGB background objects.
+
 ## 0.6.0 — 2026-11-01
 
 - Full-screen Apollo sky background with slow camera movement and floating camera, keyboard, and timeline illustrations.
