@@ -4,7 +4,7 @@
 
 The artwork fills the page background. The graphite camera, RGB mechanical keyboard, timeline, and waveform are original decorative SVG elements with material shading and layered details. Cursor proximity adds tilt, repulsion, and a lighting response; the artwork stays behind the download controls. ClipDock is a downloader; these illustrations do not represent a video-editing feature.
 
-Cloud sway and eye tracking use masked copies of the same local artwork. The eye layers preserve the original marble texture and stay aligned with the background's cover crop; no additional image service or animation library is used.
+Cloud sway and eye tracking use masked copies of the same local artwork. Only small iris/pupil cutouts move inside fixed eye apertures; stationary backing textures keep the eye whites and eyelids still. The layers preserve the marble texture and stay aligned with the background's cover crop; no additional image service or animation library is used.
 
 ## Typeface
 

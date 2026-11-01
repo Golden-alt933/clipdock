@@ -42,19 +42,30 @@
       <mask id="cloud-left-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2022" height="778"><rect width="2022" height="778" fill="#000"/><ellipse cx="230" cy="355" rx="490" ry="250" fill="url(#left-cloud-fade)"/></mask>
       <mask id="cloud-lower-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="2022" height="778"><rect width="2022" height="778" fill="url(#lower-cloud-fade)"/></mask>
       <filter id="eye-edge-feather" x="-15%" y="-30%" width="130%" height="160%"><feGaussianBlur stdDeviation=".8"/></filter>
+      <filter id="iris-edge-feather" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation=".22"/></filter>
       <mask id="near-eye-aperture" maskUnits="userSpaceOnUse" x="1258" y="205" width="55" height="30"><path d="M1262.4 225.6C1266.3 219.6 1266.5 210.6 1274.6 209.4C1285 208.8 1297.4 214.5 1307.5 219.2C1298 224.5 1281 229.7 1262.4 227.4Z" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
       <mask id="far-eye-aperture" maskUnits="userSpaceOnUse" x="1194" y="228" width="18" height="26"><path d="M1197.6 235.7Q1200.4 230.4 1208.1 232.2L1204.7 246.3Q1200.4 251 1198.8 245Z" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
+      <mask id="near-iris-backing" maskUnits="userSpaceOnUse" x="1265" y="204" width="21" height="28"><ellipse cx="1275.2" cy="217.4" rx="7.2" ry="10.6" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
+      <mask id="far-iris-backing" maskUnits="userSpaceOnUse" x="1197" y="230" width="11" height="18"><ellipse cx="1201.8" cy="238" rx="3.4" ry="5.6" fill="#fff" filter="url(#eye-edge-feather)"/></mask>
+      <mask id="near-iris-cutout" maskUnits="userSpaceOnUse" x="1267" y="206" width="17" height="23"><ellipse cx="1275.2" cy="217.4" rx="5.5" ry="8.4" fill="#fff" filter="url(#iris-edge-feather)"/></mask>
+      <mask id="far-iris-cutout" maskUnits="userSpaceOnUse" x="1198" y="232" width="8" height="13"><ellipse cx="1201.8" cy="238" rx="2.1" ry="4.5" fill="#fff" filter="url(#iris-edge-feather)"/></mask>
     </defs>
     <g mask="url(#cloud-left-mask)"><g class="cloud-layer cloud-layer-far"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g></g>
     <g mask="url(#cloud-lower-mask)"><g class="cloud-layer cloud-layer-near"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g></g>
     <g class="eye-socket" mask="url(#near-eye-aperture)">
+      <g class="eye-sclera" mask="url(#near-iris-backing)">
+        <image href="/static/apollo-sky.webp" x="-13" width="2022" height="778"/>
+      </g>
       <g class="eye-iris" data-eye-x="1275" data-eye-y="215" data-eye-range-x="4.5" data-eye-range-y="1.4">
-        <image href="/static/apollo-sky.webp" width="2022" height="778"/>
+        <g mask="url(#near-iris-cutout)"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g>
       </g>
     </g>
     <g class="eye-socket" mask="url(#far-eye-aperture)">
+      <g class="eye-sclera" mask="url(#far-iris-backing)">
+        <image href="/static/apollo-sky.webp" x="-5" width="2022" height="778"/>
+      </g>
       <g class="eye-iris" data-eye-x="1202" data-eye-y="238" data-eye-range-x="1.1" data-eye-range-y="1.1">
-        <image href="/static/apollo-sky.webp" width="2022" height="778"/>
+        <g mask="url(#far-iris-cutout)"><image href="/static/apollo-sky.webp" width="2022" height="778"/></g>
       </g>
     </g>
   </svg>

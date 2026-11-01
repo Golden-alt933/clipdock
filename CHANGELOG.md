@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — 2026-11-01
+
+- Fixed eye tracking moving the whole eye-region texture: only the iris and pupil cutouts now follow the cursor.
+- Eye whites, eyelids, and eye corners use stationary backing layers, preserving the eye shape during tracking.
+
 ## 0.8.0 — 2026-11-01
 
 - Slight independent swaying of the existing cloud areas while the statue stays still.
