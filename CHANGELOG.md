@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 — 2026-11-01
+
+- Full-screen Apollo sky background with slow camera movement and floating camera, keyboard, and timeline illustrations.
+- Light frosted-glass panels and pill controls, with the background visible throughout the workspace.
+- Self-hosted Manrope variable font with its bundled Open Font License.
+- Background-motion pause/resume control, saved preference, reduced-motion support, and animation pausing in hidden tabs.
+- Updated README preview and packaged assets for browser and CLI installs.
+
 ## 0.5.0 — 2026-11-01
 
 - Sky-blue and cloud-white accents over deep navy, with bundled Apollo-inspired artwork.

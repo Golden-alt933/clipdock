@@ -139,9 +139,18 @@ window.addEventListener('hashchange', updateNavigation);
 function initializeMotion() {
   const nodes = [...document.querySelectorAll('[data-reveal]')];
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const toggle = $('motion-toggle');
+  let userPaused = false;
+  try { userPaused = localStorage.getItem('clipdock-motion') === 'paused'; } catch { /* Storage can be disabled in private browsing. */ }
   let observer;
   function synchronize() {
     observer?.disconnect();
+    const paused = preference.matches || userPaused;
+    document.documentElement.classList.toggle('ambient-paused', paused);
+    toggle.disabled = preference.matches;
+    toggle.setAttribute('aria-pressed', String(!paused));
+    toggle.title = preference.matches ? 'Reduced motion is enabled in your system settings' : paused ? 'Resume background motion' : 'Pause background motion';
+    toggle.innerHTML = icon(paused ? 'play' : 'pause');
     if (preference.matches || !('IntersectionObserver' in window)) {
       document.documentElement.classList.remove('motion-ready');
       nodes.forEach(node => node.classList.add('is-visible'));
@@ -159,5 +168,13 @@ function initializeMotion() {
   }
   synchronize();
   preference.addEventListener('change', synchronize);
+  toggle.addEventListener('click', () => {
+    userPaused = !userPaused;
+    try { localStorage.setItem('clipdock-motion', userPaused ? 'paused' : 'playing'); } catch { /* The toggle still works for this visit. */ }
+    synchronize();
+  });
+  function updateVisibility() { document.documentElement.classList.toggle('page-hidden', document.hidden); }
+  document.addEventListener('visibilitychange', updateVisibility);
+  updateVisibility();
 }
 initializeMotion(); updateNavigation(); updateFormat(); updateFilters(); initialize(); setTimeout(poll, 1500);

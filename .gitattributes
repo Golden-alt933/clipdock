@@ -9,3 +9,4 @@
 *.js text eol=lf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
+clipdock/static/Manrope-OFL.txt text eol=lf whitespace=-blank-at-eol

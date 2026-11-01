@@ -2,7 +2,11 @@
 
 `clipdock/static/apollo-sky.webp` is a decorative, Apollo-inspired illustration generated with the built-in image generation tool for ClipDock. It is not a photograph of a museum object. The full-size generated PNG was encoded as a 2022 × 778 WebP (182 KB), without cropping or resizing, and is served locally with the app.
 
-The editing timeline and waveform are decorative HTML/SVG elements. ClipDock is a downloader; these do not represent a video-editing feature.
+The artwork now fills the page background. Camera, keyboard, timeline, and waveform illustrations are decorative SVG elements. ClipDock is a downloader; these do not represent a video-editing feature.
+
+## Typeface
+
+Manrope is self-hosted as `clipdock/static/manrope-latin.woff2`, using the Latin variable-font subset from [Google Fonts](https://fonts.google.com/specimen/Manrope). The unmodified [Open Font License](https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt) is bundled in `clipdock/static/Manrope-OFL.txt`. No font service is contacted at runtime.
 
 ## Generation prompt
 
