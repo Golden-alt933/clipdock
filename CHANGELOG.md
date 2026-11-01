@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.4 — 2026-11-01
+
+- Increased pupil travel and cursor sensitivity so horizontal and vertical tracking remain visible at normal viewing size.
+- Preserved the fixed eyelids, stable iris height, shared focus, and smooth response from the previous fixes.
+
 ## 0.8.3 — 2026-11-01
 
 - Reduced vertical pupil travel and removed vertical iris scaling to soften the up/down rolling effect.

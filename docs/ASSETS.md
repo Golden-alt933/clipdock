@@ -6,7 +6,7 @@ The artwork fills the page background. The graphite camera, RGB mechanical keybo
 
 Cloud sway and eye tracking use masked copies of the same local artwork. Only small iris/pupil cutouts move inside fixed eye apertures; stationary backing textures keep the eye whites and eyelids still. The layers preserve the marble texture and stay aligned with the background's cover crop; no additional image service or animation library is used.
 
-Both eyes share one bounded gaze direction. Subtle horizontal foreshortening and a short settling time keep the irises attached to the eye surface, with a smaller range for the partly hidden eye. Vertical travel is minimal, with a fixed iris height and independent horizontal tracking to avoid rolling or squashing the eyes.
+Both eyes share one bounded gaze direction. Subtle horizontal foreshortening and a short settling time keep the irises attached to the eye surface, with a smaller range for the partly hidden eye. Cursor sensitivity and travel keep the motion visible at normal viewing size. The fixed eyelid masks clip the moving irises naturally, with a stable iris height and independent horizontal tracking to avoid squashing or sideways drift.
 
 ## Typeface
 

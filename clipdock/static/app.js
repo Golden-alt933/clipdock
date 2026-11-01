@@ -207,8 +207,8 @@ function initializeAmbientResponse() {
       // A shared, distant focus avoids cross-eyed aiming at the screen plane.
       const dx = gazePointer && portrait ? gazePointer.x - portrait.left - gazeOrigin.x * portrait.scale : 0;
       const dy = gazePointer && portrait ? gazePointer.y - portrait.top - gazeOrigin.y * portrait.scale : 0;
-      const horizontal = Math.tanh(dx / Math.max(680, innerWidth * .7));
-      const vertical = Math.tanh(dy / Math.max(560, innerHeight * .9));
+      const horizontal = Math.tanh(dx / Math.max(480, innerWidth * .55));
+      const vertical = Math.tanh(dy / Math.max(320, innerHeight * .55));
       // Independent limits prevent vertical tracking from pulling the gaze sideways.
       gaze.target.x = horizontal;
       gaze.target.y = vertical;
@@ -238,7 +238,7 @@ function initializeAmbientResponse() {
       const x = gaze.current.x * eye.rangeX, y = gaze.current.y * eye.rangeY;
       // Slight foreshortening keeps the iris on the curved eyeball surface.
       const scaleX = 1 - .055 * Math.abs(gaze.current.x);
-      // The shallow marble aperture needs minimal pitch and a stable iris height.
+      // Keep a stable iris height as it moves behind the fixed eyelid mask.
       eye.element.style.transform = `translate(${x.toFixed(3)}px, ${y.toFixed(3)}px) scale(${scaleX.toFixed(4)}, 1)`;
     });
     if (unsettled) schedule(); else previousTime = 0;
