@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.0 — 2026-11-05
+
+- Optional signed-in YouTube cookies for hosted sites: a Render secret file `youtube-cookies.txt` (or `CLIPDOCK_YOUTUBE_COOKIES`) is used for YouTube only, on a private writable copy. Falls back to WARP/direct when absent.
+- `/api/route/probe` compares direct, WARP and cookie routes on the host.
+
 ## 0.10.1 — 2026-11-05
 
 - `/api/route` also reports whether a fixed public YouTube video can be read from the server.

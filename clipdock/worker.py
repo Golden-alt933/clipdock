@@ -58,13 +58,45 @@ def youtube_proxy(url):
     return proxy
 
 
+COOKIES_DEFAULT = "/etc/secrets/youtube-cookies.txt"
+
+
+def youtube_cookies(url):
+    """Writable copy of the owner's YouTube cookies file, if one is configured; else None.
+
+    yt-dlp rewrites its cookie file on exit, and secret mounts are read-only, so use a temp copy.
+    """
+    source = Path(os.environ.get("CLIPDOCK_YOUTUBE_COOKIES", COOKIES_DEFAULT))
+    if not url.startswith("https://www.youtube.com/") or not source.is_file():
+        return None
+    import atexit
+    import tempfile
+    handle, copy = tempfile.mkstemp(prefix="clipdock-yt-", suffix=".txt")
+    os.close(handle)
+    shutil.copyfile(source, copy)
+    os.chmod(copy, 0o600)
+    atexit.register(lambda: os.path.exists(copy) and os.remove(copy))
+    return copy
+
+
+def youtube_options(url):
+    """Network options for YouTube: signed-in cookies if configured, otherwise the WARP proxy."""
+    cookies = youtube_cookies(url)
+    if cookies:
+        # Keep a signed-in session on one stable address; switching networks looks more suspicious.
+        options = {"cookiefile": cookies}
+        if os.environ.get("CLIPDOCK_COOKIES_VIA_PROXY") == "1" and youtube_proxy(url):
+            options["proxy"] = youtube_proxy(url)
+        return options
+    proxy = youtube_proxy(url)
+    return {"proxy": proxy} if proxy else {}
+
+
 def run(data):
     options = {"quiet": True, "no_warnings": True, "logger": Logger(), "noplaylist": True,
                "playlist_items": "1", "socket_timeout": 25, "retries": 2, "fragment_retries": 2,
                "windowsfilenames": True, "cachedir": False, "js_runtimes": {"node": {}}}
-    proxy = youtube_proxy(data["url"])
-    if proxy:
-        options["proxy"] = proxy
+    options.update(youtube_options(data["url"]))
     if data["mode"] == "inspect":
         with yt_dlp.YoutubeDL(options) as downloader:
             info = first_video(downloader.extract_info(data["url"], download=False))
