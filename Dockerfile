@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS node-runtime
+FROM brainicism/bgutil-ytdlp-pot-provider:2.0.2 AS node-runtime
 FROM python:3.13-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=10000
 
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /app /opt/bgutil
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
@@ -16,7 +17,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
 COPY clipdock ./clipdock
-RUN python -m pip install --no-cache-dir .
+RUN python -m pip install --no-cache-dir . bgutil-ytdlp-pot-provider==2.0.2
 USER clipdock
 EXPOSE 10000
 CMD ["python", "-m", "clipdock.web"]

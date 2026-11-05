@@ -1,15 +1,17 @@
 """Temporary Render probe: public video only; never prints media URLs or cookies."""
 import json
 import re
+import subprocess
 import threading
 import time
+import urllib.request
 
 import yt_dlp
 from yt_dlp.networking.impersonate import ImpersonateTarget
 
 
 def safe(message):
-    return re.sub(r"https?://\S+", "<URL>", str(message))[:600]
+    return re.sub(r"[A-Za-z0-9_-]{50,}", "<DATA>", re.sub(r"https?://\S+", "<URL>", str(message)))[:600]
 
 
 def report(**data):
@@ -19,9 +21,12 @@ def report(**data):
 class Log:
     def __init__(self):
         self.warnings = []
+        self.tokens = []
 
     def debug(self, message):
-        pass
+        for context in ("player", "gvs"):
+            if f"Retrieved a {context} PO Token" in message:
+                self.tokens.append(context)
 
     def warning(self, message):
         self.warnings.append(safe(message))
@@ -31,23 +36,36 @@ class Log:
 
 
 def probe(only=None):
+    from yt_dlp.plugins import load_all_plugins
+    load_all_plugins()
+    from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
+    BgUtilPTPBase._GETPOT_TIMEOUT = 60
+    for attempt in range(40):
+        try:
+            with urllib.request.urlopen("http://127.0.0.1:4416/ping", timeout=2) as response:
+                report(provider_ready=True, version=json.load(response)["version"])
+            break
+        except Exception:
+            time.sleep(0.5)
+    else:
+        report(provider_ready=False)
+        return
     cases = [
-        ("default", {}),
-        ("chrome", {"impersonate": ImpersonateTarget(client="chrome")}),
-        ("web_safari", {"impersonate": ImpersonateTarget(client="safari"),
-                        "extractor_args": {"youtube": {"player_client": ["web_safari"]}}}),
-        ("web_embedded", {"impersonate": ImpersonateTarget(client="chrome"),
-                          "extractor_args": {"youtube": {"player_client": ["web_embedded"]}}}),
-        ("tv", {"extractor_args": {"youtube": {"player_client": ["tv"]}}}),
-        ("mweb", {"impersonate": ImpersonateTarget(client="chrome"),
-                  "extractor_args": {"youtube": {"player_client": ["mweb"]}}}),
+        ("mweb_auto_pot", {"impersonate": ImpersonateTarget(client="chrome"),
+                           "extractor_args": {"youtube": {"player_client": ["mweb"]}}}),
+        ("mweb_player_pot", {"impersonate": ImpersonateTarget(client="chrome"),
+                             "extractor_args": {"youtube": {"player_client": ["mweb"], "fetch_pot": ["always"]}}}),
+        ("safari_player_pot", {"impersonate": ImpersonateTarget(client="safari"),
+                               "extractor_args": {"youtube": {"player_client": ["web_safari"], "fetch_pot": ["always"]}}}),
+        ("mweb_skip_webpage_pot", {"impersonate": ImpersonateTarget(client="chrome"),
+                                  "extractor_args": {"youtube": {"player_client": ["mweb"], "fetch_pot": ["always"], "player_skip": ["webpage", "configs"]}}}),
     ]
     report(stage="start", cases=len(cases))
     for name, extra in cases:
         if only and name not in only:
             continue
         logger = Log()
-        options = {"quiet": True, "no_warnings": True, "logger": logger, "noplaylist": True,
+        options = {"quiet": True, "verbose": True, "no_warnings": True, "logger": logger, "noplaylist": True,
                    "socket_timeout": 12, "retries": 0, "extractor_retries": 0,
                    "cachedir": False, "js_runtimes": {"node": {}}, **extra}
         started = time.monotonic()
@@ -56,15 +74,17 @@ def probe(only=None):
                 info = downloader.extract_info("https://www.youtube.com/shorts/q6ZqeyEh64A", download=False)
             report(client=name, result="PASS", formats=len(info.get("formats", [])),
                    title=info.get("title"), seconds=round(time.monotonic() - started, 1),
-                   warnings=logger.warnings[-3:])
+                   tokens=logger.tokens, warnings=logger.warnings[-4:])
         except Exception as exc:
             report(client=name, result="FAIL", error=safe(exc),
-                   seconds=round(time.monotonic() - started, 1), warnings=logger.warnings[-3:])
+                   seconds=round(time.monotonic() - started, 1), tokens=logger.tokens, warnings=logger.warnings[-4:])
         time.sleep(3)
     report(stage="complete")
 
 
 if __name__ == "__main__":
+    provider = subprocess.Popen(["node", "/opt/bgutil/build/main.js", "--host", "127.0.0.1"],
+                                cwd="/opt/bgutil", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     threading.Thread(target=probe, daemon=True).start()
     from clipdock.web import main
     main()
