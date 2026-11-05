@@ -293,6 +293,20 @@ def youtube_route():
     return result
 
 
+PROBE = {"checked": 0.0, "result": None, "lock": threading.Lock()}
+
+
+@app.get("/api/route/probe")
+def youtube_probe():
+    """Compare YouTube routes/clients on this host. One run at a time, cached for ten minutes."""
+    with PROBE["lock"]:
+        if PROBE["result"] and time.time() - PROBE["checked"] < 600:
+            return PROBE["result"]
+        from . import probe
+        PROBE.update(checked=time.time(), result=probe.run())
+        return PROBE["result"]
+
+
 @app.get("/api/config")
 def config(request: Request):
     import yt_dlp.version
