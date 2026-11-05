@@ -1,4 +1,5 @@
 """One isolated, sandboxed browser check in Render; no personal profile or account."""
+import html as html_lib
 import json
 import os
 import re
@@ -56,8 +57,10 @@ def probe():
         report(result="PASS" if status.get("status") == "OK" and count else "FAIL", stage="player",
                status=status.get("status"), reason=safe(status.get("reason", "")), formats=count)
     else:
+        visible = html_lib.unescape(re.sub(r"<[^>]+>", " ", re.sub(
+            r"<(?:script|style)\b[^>]*>.*?</(?:script|style)>", "", html, flags=re.S | re.I)))
         report(result="FAIL", stage="page", title=safe(title.group(1) if title else ""),
-               verification_required=any(term in html.lower() for term in ("captcha", "not a bot", "unusual traffic")),
+               visible_verification_terms=any(term in visible.lower() for term in ("captcha", "not a bot", "unusual traffic")),
                bytes=len(html), signals=signals)
     report(stage="complete")
 
