@@ -28,6 +28,8 @@ Further Render tests covered 20 player/transport configurations, a private playb
 
 Instagram initially failed as well. Version 0.9.1 adds the optional `curl-cffi` transport, enabling yt-dlp's browser-compatible TLS requests and Instagram's public API extraction path. The supplied Reel then passed a complete public-site download. This was a dependency fix, not evidence that every cloud restriction has disappeared.
 
+A further [Render system audit](youtube-system-audit.md) verified the production runtime in Ohio and tested standalone extraction, matched guest tokens, another self-hosted engine, and a sandboxed browser. Completing Google's CAPTCHA allowed the webpage to load, but YouTube's player still required sign-in and the guest-profile download failed. No working YouTube fix was established; both temporary test services were suspended.
+
 Alternative-host checks on **5 November 2026**:
 
 | Service | What prevented a free second-host test |
