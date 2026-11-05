@@ -276,6 +276,18 @@ def youtube_route():
             result.update(warp=fields.get("warp") in ("on", "plus"), colo=fields.get("colo"))
         except Exception as exc:
             result.update(warp=False, error=type(exc).__name__)
+    # One fixed public video, so this cannot be used to look up arbitrary links. Cached with the rest.
+    youtube = {"quiet": True, "no_warnings": True, "socket_timeout": 20, "noplaylist": True,
+               "cachedir": False, "js_runtimes": {"node": {}}}
+    if proxy:
+        youtube["proxy"] = proxy
+    import yt_dlp
+    try:
+        with yt_dlp.YoutubeDL(youtube) as ydl:
+            info = ydl.extract_info("https://www.youtube.com/watch?v=jNQXAC9IVRw", download=False)
+        result["youtube"] = f"ok: {len(info.get('formats') or [])} formats"
+    except Exception as exc:
+        result["youtube"] = re.sub(r"\x1b\[[0-9;]*m", "", str(exc))[:400]
     with LOCK:
         ROUTE_CACHE.update(checked=time.time(), result=result)
     return result

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 — 2026-11-05
+
+- `/api/route` also reports whether a fixed public YouTube video can be read from the server.
+
 ## 0.10.0 — 2026-11-05
 
 - Hosted YouTube requests go through a free, user-space Cloudflare WARP proxy; Instagram and Pinterest stay direct. Falls back to direct if the proxy is down.
