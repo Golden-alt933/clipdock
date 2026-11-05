@@ -40,12 +40,15 @@ def probe(only=None):
     load_all_plugins()
     from yt_dlp_plugins.extractor.getpot_bgutil import BgUtilPTPBase
     BgUtilPTPBase._GETPOT_TIMEOUT = 60
-    for attempt in range(40):
+    for attempt in range(240):
         try:
             with urllib.request.urlopen("http://127.0.0.1:4416/ping", timeout=2) as response:
                 report(provider_ready=True, version=json.load(response)["version"])
             break
         except Exception:
+            if provider.poll() is not None:
+                report(provider_ready=False, exit=provider.returncode, error=safe(provider.stderr.read().decode(errors="replace")))
+                return
             time.sleep(0.5)
     else:
         report(provider_ready=False)
@@ -84,7 +87,7 @@ def probe(only=None):
 
 if __name__ == "__main__":
     provider = subprocess.Popen(["node", "/opt/bgutil/build/main.js", "--host", "127.0.0.1"],
-                                cwd="/opt/bgutil", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                cwd="/opt/bgutil", stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     threading.Thread(target=probe, daemon=True).start()
     from clipdock.web import main
     main()
