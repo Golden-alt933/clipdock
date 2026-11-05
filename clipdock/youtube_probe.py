@@ -54,6 +54,7 @@ def probe(only=None):
         report(provider_ready=False)
         return
     cases = [
+        ("chrome_nightly", {"impersonate": ImpersonateTarget(client="chrome")}),
         ("mweb_auto_pot", {"impersonate": ImpersonateTarget(client="chrome"),
                            "extractor_args": {"youtube": {"player_client": ["mweb"]}}}),
         ("mweb_player_pot", {"impersonate": ImpersonateTarget(client="chrome"),

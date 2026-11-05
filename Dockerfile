@@ -17,7 +17,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
 COPY clipdock ./clipdock
-RUN python -m pip install --no-cache-dir . bgutil-ytdlp-pot-provider==2.0.2
+RUN python -m pip install --no-cache-dir . bgutil-ytdlp-pot-provider==2.0.2 "yt-dlp[default,curl-cffi]==2026.11.4.232659.dev0"
 USER clipdock
 EXPOSE 10000
 CMD ["python", "-m", "clipdock.web"]
