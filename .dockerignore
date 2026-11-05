@@ -5,5 +5,7 @@
 !LICENSE
 !clipdock/
 !clipdock/**
+!scripts/warp-proxy.sh
+!scripts/start-hosted.sh
 **/__pycache__/
 **/*.pyc
