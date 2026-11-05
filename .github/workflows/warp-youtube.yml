@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: [feat/youtube-warp]
-    paths: [scripts/warp-proxy.sh, .github/workflows/warp-youtube.yml]
+    paths: [scripts/**, Dockerfile, clipdock/worker.py, tests/youtube_live.py, .github/workflows/warp-youtube.yml]
 
 permissions:
   contents: read
@@ -52,3 +52,25 @@ jobs:
           yt-dlp --proxy socks5://127.0.0.1:40000 -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b" \
             -S res:720 --merge-output-format mp4 -o short.mp4 https://www.youtube.com/shorts/q6ZqeyEh64A
           ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height -of compact short.mp4
+
+  container:
+    # End to end: the real hosted image (same as Render) inspects and downloads a YouTube Short.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Build hosted website
+        run: docker build -t clipdock:warp .
+      - name: Start hosted website
+        run: docker run --detach --name clipdock-warp -p 127.0.0.1:10000:10000 clipdock:warp
+      - name: YouTube inspect, download and file transfer
+        run: python tests/youtube_live.py
+      - name: Check the downloaded file
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg > /dev/null
+          ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height -of compact youtube-live.mp4
+      - name: Container logs
+        if: always()
+        run: docker logs clipdock-warp 2>&1 | grep -vE 'DEBUG|Routine' | tail -40
