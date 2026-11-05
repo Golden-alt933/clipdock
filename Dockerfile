@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=companion-runtime /app/invidious_companion /opt/companion/invidious_companion
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates libatomic1 \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates libatomic1 chromium chromium-sandbox \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 clipdock \
     && mkdir -p /var/tmp/youtubei.js \
