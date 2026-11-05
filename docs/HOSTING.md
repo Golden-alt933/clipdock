@@ -18,7 +18,10 @@ Verified on **5 November 2026**:
 
 The same YouTube and Instagram links returned metadata successfully from the local app during this check. The Instagram and Pinterest results verify actual hosted downloads, including file transfer to a browser and FFprobe validation. Availability can differ across platforms and videos; platform restrictions and free-host limits may change.
 
-### Why YouTube still fails on this host
+### Why YouTube failed on this host
+
+Version with the WARP proxy: YouTube requests now go through Cloudflare WARP, which passed end-to-end tests from a blocked cloud machine. See [YouTube on Render](YOUTUBE-HOSTING.md#fix-cloudflare-warp-for-youtube-added-5-november-2026). The history below explains the original failure.
+
 
 The browser submits a link to ClipDock's API. The cloud server then contacts YouTube, retrieves media streams, and sends the finished file back to the visitor. YouTube sees the cloud server's network address, rather than the visitor's home connection.
 
