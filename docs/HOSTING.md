@@ -14,9 +14,27 @@ Verified on **5 November 2026**:
 | --- | --- |
 | Pinterest | Sample downloaded through Chrome: 720 × 1280 MP4 with H.264 video and AAC audio, 57.7 seconds, 16.1 MiB. |
 | YouTube | The supplied Short was rejected with a sign-in/rate-limit error. |
-| Instagram | The supplied Reel was rejected with HTTP 429 (Too Many Requests). |
+| Instagram | The supplied Reel downloaded through Chrome after the 0.9.1 networking fix: 720 × 1280 MP4 with VP9 video and AAC audio, 11.1 seconds, 2.5 MiB. |
 
-The same YouTube and Instagram links returned metadata successfully from the local app during this check. The Pinterest result verifies the hosted download pipeline. Availability can differ across platforms and videos; use the local app when a platform rejects the hosted service. Platform restrictions and free-host limits may change.
+The same YouTube and Instagram links returned metadata successfully from the local app during this check. The Instagram and Pinterest results verify actual hosted downloads, including file transfer to a browser and FFprobe validation. Availability can differ across platforms and videos; platform restrictions and free-host limits may change.
+
+### Why YouTube still fails on this host
+
+The browser submits a link to ClipDock's API. The cloud server then contacts YouTube, retrieves media streams, and sends the finished file back to the visitor. YouTube sees the cloud server's network address, rather than the visitor's home connection.
+
+The supplied Short returns metadata locally but triggers YouTube's sign-in/bot check on Render. A second Free instance deployed in **Frankfurt** with the same 0.9.1 build produced the same rejection as Singapore; the temporary Frankfurt instance was suspended after testing. This points to a cloud-request restriction; it is not a failure to serve the website or transfer files. [yt-dlp's FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#http-error-429-too-many-requests-or-402-payment-required) also documents IP-based blocking. Moving hosts changes the outgoing network address, but another cloud address can be rejected too. A paid host alone does not guarantee a fix.
+
+Instagram initially failed as well. Version 0.9.1 adds the optional `curl-cffi` transport, enabling yt-dlp's browser-compatible TLS requests and Instagram's public API extraction path. The supplied Reel then passed a complete public-site download. This was a dependency fix, not evidence that every cloud restriction has disappeared.
+
+Alternative-host checks on **5 November 2026**:
+
+| Service | What prevented a free second-host test |
+| --- | --- |
+| Koyeb | [Free compute exists, but account verification requires a card](https://www.koyeb.com/docs/faqs/pricing). Sign-in and verification must be completed by the account owner before deployment can be tested. |
+| Railway | [New-account free-trial deployments are temporarily unavailable](https://status.railway.com/incident/O1VGXWU5); a paid plan is required to deploy during reopening. |
+| Northflank | Its [published security incident](https://status.northflank.com/cmvv0rn5a092f14rutwccodpp) involves control-plane secrets; no deployment was created there. |
+
+These are provider checks, not successful deployments or download tests on those services. The current public site runs entirely on Render and does not require the owner's PC to stay on.
 
 ## Deploy on Render's free compute plan
 

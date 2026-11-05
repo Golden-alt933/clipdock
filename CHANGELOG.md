@@ -4,6 +4,7 @@
 
 - Include yt-dlp's browser-compatible networking dependency, enabling Instagram's public API extraction path and browser TLS fingerprints.
 - Added a runtime dependency check so installations missing Instagram's browser transport fail verification.
+- Verified the supplied Instagram Reel end to end on the public Render site; documented YouTube's remaining cloud-request rejection and alternative-host constraints.
 
 ## 0.9.0 — 2026-11-02
 

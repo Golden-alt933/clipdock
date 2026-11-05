@@ -48,7 +48,7 @@ Your browser opens `http://127.0.0.1:8787`. Paste a link, choose a format, and d
 
 This command runs a **local web app**: the browser is its interface and the downloader runs on your computer. GitHub hosts the source code.
 
-[Open the hosted demo](https://clipdock-4mt9.onrender.com) (free, limited). A Pinterest sample downloaded successfully; the tested YouTube and Instagram links were rejected from this host. Use the local app for those platforms. See [hosting status and deployment instructions](docs/HOSTING.md).
+[Open the hosted demo](https://clipdock-4mt9.onrender.com) (free, limited). Instagram and Pinterest samples downloaded successfully; the tested YouTube Short still triggers a sign-in/bot check on this host. See [hosting status and deployment instructions](docs/HOSTING.md).
 
 ## How does downloading work?
 
