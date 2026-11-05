@@ -24,6 +24,8 @@ The browser submits a link to ClipDock's API. The cloud server then contacts You
 
 The supplied Short returns metadata locally but triggers YouTube's sign-in/bot check on Render. A second Free instance deployed in **Frankfurt** with the same 0.9.1 build produced the same rejection as Singapore; the temporary Frankfurt instance was suspended after testing. This points to a cloud-request restriction; it is not a failure to serve the website or transfer files. [yt-dlp's FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#http-error-429-too-many-requests-or-402-payment-required) also documents IP-based blocking. Moving hosts changes the outgoing network address, but another cloud address can be rejected too. A paid host alone does not guarantee a fix.
 
+Further Render tests covered six player/transport configurations, a private playback-token provider with confirmed player-token generation, and yt-dlp's **2026.11.04.232659** nightly build. All remained blocked before media formats could be retrieved. The experimental token service and nightly build were kept out of the production deployment. See the [YouTube investigation](YOUTUBE-HOSTING.md) for the test matrix and remaining integration requirements.
+
 Instagram initially failed as well. Version 0.9.1 adds the optional `curl-cffi` transport, enabling yt-dlp's browser-compatible TLS requests and Instagram's public API extraction path. The supplied Reel then passed a complete public-site download. This was a dependency fix, not evidence that every cloud restriction has disappeared.
 
 Alternative-host checks on **5 November 2026**:
