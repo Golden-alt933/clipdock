@@ -1,5 +1,6 @@
+FROM quay.io/invidious/invidious-companion:latest AS companion-runtime
 FROM node:22-bookworm-slim AS node-runtime
-FROM python:3.13-slim-bookworm
+FROM python:3.13-slim-trixie
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -8,10 +9,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=10000
 
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=companion-runtime /app/invidious_companion /opt/companion/invidious_companion
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates libatomic1 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home --uid 10001 clipdock
+    && useradd --create-home --uid 10001 clipdock \
+    && mkdir -p /var/tmp/youtubei.js \
+    && chown clipdock:clipdock /var/tmp/youtubei.js
 
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./

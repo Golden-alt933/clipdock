@@ -1,10 +1,16 @@
 """Temporary production-image audit; public media only, no credentials logged."""
 import importlib.metadata
 import json
+import os
 import re
+import secrets
 import subprocess
 import sys
 import threading
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 from clipdock import __version__
@@ -22,6 +28,100 @@ def report(**values):
 def execute(arguments, **kwargs):
     return subprocess.run(arguments, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", timeout=150, **kwargs)
+
+
+def probe_companion():
+    key = secrets.token_hex(8)
+    environment = {
+        "PATH": os.environ.get("PATH", ""), "HOST": "127.0.0.1", "PORT": "8282",
+        "SERVER_SECRET_KEY": key, "SERVER_BASE_PATH": "/companion", "CACHE_ENABLED": "false",
+        "CACHE_DIRECTORY": "/var/tmp", "YOUTUBE_SESSION_OAUTH_ENABLED": "false",
+        "JOBS_YOUTUBE_SESSION_PO_TOKEN_ENABLED": "true", "NETWORKING_FETCH_TIMEOUT_MS": "20000",
+        "NETWORKING_FETCH_RETRY_ENABLED": "false", "CAPTIONS_ENABLED": "false",
+    }
+    backend = subprocess.Popen(["/opt/companion/invidious_companion"], cwd="/opt/companion", env=environment,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                               encoding="utf-8", errors="replace")
+
+    def read_log():
+        markers = {
+            "Successfully generated PO token": "session_ready",
+            "Successfully validated PO token": "session_media_validated",
+            "Failed to validate PO token": "session_validation_failed",
+            "Sign in to confirm": "youtube_login_required",
+            "error while loading shared libraries": "runtime_library_missing",
+            "GLIBC_": "runtime_library_mismatch",
+        }
+        seen = set()
+        for line in backend.stdout:
+            for marker, stage in markers.items():
+                if marker in line and stage not in seen:
+                    seen.add(stage)
+                    report(engine="companion", stage=stage)
+
+    threading.Thread(target=read_log, daemon=True).start()
+    deadline = time.monotonic() + 180
+    try:
+        while time.monotonic() < deadline:
+            if backend.poll() is not None:
+                report(engine="companion", result="FAIL", stage="startup", exit=backend.returncode)
+                return
+            try:
+                request = urllib.request.Request("http://127.0.0.1:8282/companion/youtubei/v1/player",
+                    data=json.dumps({"videoId": "q6ZqeyEh64A"}).encode(),
+                    headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    info = json.load(response)
+                status = info.get("playabilityStatus", {})
+                reason = str(status.get("reason", ""))
+                if "Companion is starting" in reason:
+                    time.sleep(5)
+                    continue
+                stream = info.get("streamingData", {})
+                formats = stream.get("formats", []) + stream.get("adaptiveFormats", [])
+                report(engine="companion", result="PASS" if status.get("status") == "OK" and formats else "FAIL",
+                       stage="extract", status=status.get("status"), reason=safe(reason), formats=len(formats))
+                if status.get("status") != "OK" or not formats:
+                    return
+                progressive = [f for f in stream.get("formats", [])
+                               if f.get("url") and f.get("mimeType", "").startswith("video/mp4")]
+                if not progressive:
+                    report(engine="companion", stage="transfer", result="NEEDS_ADAPTIVE_MERGE")
+                    return
+                media = urllib.parse.urlsplit(progressive[0]["url"])
+                if media.scheme != "https" or not (media.hostname or "").endswith(".googlevideo.com"):
+                    report(engine="companion", stage="transfer", result="FAIL", reason="Unexpected media host")
+                    return
+                query = urllib.parse.parse_qsl(media.query, keep_blank_values=True)
+                query.append(("host", media.hostname))
+                relay = "http://127.0.0.1:8282/companion/videoplayback?" + urllib.parse.urlencode(query)
+                total = 0
+                destination = Path("/tmp/companion-public-test.mp4")
+                with urllib.request.urlopen(relay, timeout=30) as response, destination.open("wb") as output:
+                    while chunk := response.read(65536):
+                        total += len(chunk)
+                        if total > 100 * 1024 * 1024:
+                            raise RuntimeError("Transfer exceeded test limit")
+                        output.write(chunk)
+                check = execute(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height",
+                                 "-show_entries", "format=duration,size", "-of", "json", str(destination)])
+                report(engine="companion", stage="transfer", result="PASS" if check.returncode == 0 else "FAIL",
+                       bytes=total, media=json.loads(check.stdout) if check.returncode == 0 else None)
+                return
+            except urllib.error.HTTPError as exc:
+                report(engine="companion", stage="request", status=exc.code, result="FAIL")
+                return
+            except urllib.error.URLError:
+                time.sleep(5)
+        report(engine="companion", stage="session_initialization", result="TIMEOUT")
+    except Exception as exc:
+        report(engine="companion", result="FAIL", error=safe(exc))
+    finally:
+        backend.terminate()
+        try:
+            backend.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            backend.kill()
 
 
 def probe():
@@ -64,6 +164,7 @@ def probe():
                    size=final.get("size"), error=safe(final.get("message", "")))
         except Exception as exc:
             report(test=name, result="FAIL", error=safe(exc))
+    probe_companion()
     report(stage="complete")
 
 
