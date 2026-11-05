@@ -1,9 +1,12 @@
 """One isolated yt-dlp operation. JSON on stdin; JSON events on stdout."""
 import json
+import os
 import re
 import shutil
+import socket
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import yt_dlp
 
@@ -40,10 +43,28 @@ def summary(info):
             "id": info.get("id"), "source": info.get("extractor_key", "")}
 
 
+def youtube_proxy(url):
+    """Route only YouTube through CLIPDOCK_YOUTUBE_PROXY (for example a local WARP SOCKS proxy)."""
+    proxy = os.environ.get("CLIPDOCK_YOUTUBE_PROXY", "").strip()
+    if not proxy or not url.startswith("https://www.youtube.com/"):
+        return None
+    parts = urlsplit(proxy)
+    if parts.hostname in ("127.0.0.1", "localhost") and parts.port:
+        # A local proxy that is still starting (or crashed) would fail every request; go direct instead.
+        try:
+            socket.create_connection((parts.hostname, parts.port), timeout=1).close()
+        except OSError:
+            return None
+    return proxy
+
+
 def run(data):
     options = {"quiet": True, "no_warnings": True, "logger": Logger(), "noplaylist": True,
                "playlist_items": "1", "socket_timeout": 25, "retries": 2, "fragment_retries": 2,
                "windowsfilenames": True, "cachedir": False, "js_runtimes": {"node": {}}}
+    proxy = youtube_proxy(data["url"])
+    if proxy:
+        options["proxy"] = proxy
     if data["mode"] == "inspect":
         with yt_dlp.YoutubeDL(options) as downloader:
             info = first_video(downloader.extract_info(data["url"], download=False))

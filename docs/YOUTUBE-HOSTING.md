@@ -1,5 +1,21 @@
 # YouTube on Render
 
+## Fix: Cloudflare WARP for YouTube (added 5 November 2026)
+
+YouTube blocks most cloud server addresses. The hosted image now starts a free, user-space [Cloudflare WARP](https://one.one.one.one/) proxy (`wgcf` + `wireproxy`, no root or kernel module) at `127.0.0.1:40000`, and the worker sends **only YouTube** requests through it. Instagram and Pinterest stay direct. If the proxy is not listening, YouTube falls back to the direct route instead of failing.
+
+Verified on a GitHub-hosted Azure runner (`.github/workflows/warp-youtube.yml`):
+
+| Route | Result |
+| --- | --- |
+| Direct from the runner | `Sign in to confirm you're not a bot` (the same block Render gets). |
+| yt-dlp through WARP | Both test videos inspected; the Short downloaded as 720 × 1280 AV1 + AAC, 24.96 s, 5,916,127 bytes. |
+| The hosted Docker image through WARP | `/api/inspect`, a full download job and the browser file transfer all succeeded with the same file. |
+
+Not yet verified on Render itself: WARP needs outbound UDP to Cloudflare (port 2408). Deploy, then test a YouTube link on the public site. Set `CLIPDOCK_WARP=0` to turn it off, or set `CLIPDOCK_YOUTUBE_PROXY` to use a different proxy. Cloudflare could start being blocked by YouTube in future; this is a workaround, not a guarantee.
+
+The investigation below predates this fix.
+
 Tested **5 November 2026**, using the supplied public Short `q6ZqeyEh64A`.
 
 **Status: direct YouTube extraction is still blocked from the tested Render networks.** Instagram and Pinterest downloads have passed on the public demo; this investigation does not establish a working hosted YouTube download.

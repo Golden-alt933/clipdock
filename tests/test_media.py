@@ -85,3 +85,33 @@ class MediaTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class YouTubeProxyTests(unittest.TestCase):
+    def test_only_youtube_uses_the_proxy(self):
+        with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_PROXY": "socks5://proxy.example:1080"}):
+            self.assertEqual(worker.youtube_proxy("https://www.youtube.com/watch?v=jNQXAC9IVRw"),
+                             "socks5://proxy.example:1080")
+            self.assertIsNone(worker.youtube_proxy("https://www.instagram.com/reel/abc/"))
+            self.assertIsNone(worker.youtube_proxy("https://pin.it/abc"))
+
+    def test_no_proxy_configured(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertIsNone(worker.youtube_proxy("https://www.youtube.com/watch?v=jNQXAC9IVRw"))
+
+    def test_local_proxy_that_is_down_falls_back_to_direct(self):
+        import socket
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            free_port = probe.getsockname()[1]
+        with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_PROXY": f"socks5://127.0.0.1:{free_port}"}):
+            self.assertIsNone(worker.youtube_proxy("https://www.youtube.com/watch?v=jNQXAC9IVRw"))
+
+    def test_local_proxy_that_is_listening_is_used(self):
+        import socket
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            server.listen()
+            proxy = f"socks5://127.0.0.1:{server.getsockname()[1]}"
+            with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_PROXY": proxy}):
+                self.assertEqual(worker.youtube_proxy("https://www.youtube.com/watch?v=jNQXAC9IVRw"), proxy)

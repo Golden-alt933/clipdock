@@ -1,0 +1,76 @@
+name: YouTube through WARP
+
+# Manual check: does a cloud machine that YouTube blocks get through via Cloudflare WARP?
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/youtube-warp]
+    paths: [scripts/**, Dockerfile, clipdock/worker.py, tests/youtube_live.py, .github/workflows/warp-youtube.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      VIDEOS: "https://www.youtube.com/shorts/q6ZqeyEh64A https://www.youtube.com/watch?v=jNQXAC9IVRw"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install downloader and WARP tools
+        run: |
+          python -m pip install "yt-dlp[default]"
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+          mkdir -p "$HOME/bin"
+          curl -fsSL -o "$HOME/bin/wgcf" https://github.com/ViRb3/wgcf/releases/download/v2.3.1/wgcf_2.3.1_linux_amd64
+          curl -fsSL https://github.com/whyvl/wireproxy/releases/download/v1.1.3/wireproxy_linux_amd64.tar.gz | tar -xz -C "$HOME/bin" wireproxy
+          chmod +x "$HOME/bin/wgcf" "$HOME/bin/wireproxy"
+          sha256sum "$HOME/bin/wgcf" "$HOME/bin/wireproxy"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Direct from the cloud machine (expected to be blocked)
+        continue-on-error: true
+        run: |
+          for v in $VIDEOS; do yt-dlp --simulate --print "OK direct: %(id)s %(duration)ss" "$v"; done
+      - name: Start WARP proxy
+        run: |
+          sh scripts/warp-proxy.sh > warp.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS --max-time 5 --socks5-hostname 127.0.0.1:40000 https://www.cloudflare.com/cdn-cgi/trace > trace.txt 2>/dev/null && break
+            sleep 1
+          done
+          cat warp.log
+          grep -E '^(warp|colo|loc)=' trace.txt
+          grep -q '^warp=on' trace.txt
+      - name: Through WARP — inspect and download
+        run: |
+          for v in $VIDEOS; do
+            yt-dlp --proxy socks5://127.0.0.1:40000 --simulate --print "OK via WARP: %(id)s %(duration)ss" "$v"
+          done
+          yt-dlp --proxy socks5://127.0.0.1:40000 -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b" \
+            -S res:720 --merge-output-format mp4 -o short.mp4 https://www.youtube.com/shorts/q6ZqeyEh64A
+          ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height -of compact short.mp4
+
+  container:
+    # End to end: the real hosted image (same as Render) inspects and downloads a YouTube Short.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Build hosted website
+        run: docker build -t clipdock:warp .
+      - name: Start hosted website
+        run: docker run --detach --name clipdock-warp -p 127.0.0.1:10000:10000 clipdock:warp
+      - name: YouTube inspect, download and file transfer
+        run: python tests/youtube_live.py
+      - name: Check the downloaded file
+        run: >-
+          docker run --rm -v "$PWD:/w" --entrypoint ffprobe clipdock:warp -v error
+          -show_entries format=duration,size:stream=codec_name,width,height -of compact /w/youtube-live.mp4
+      - name: Container logs
+        if: always()
+        run: docker logs clipdock-warp 2>&1 | grep -vE 'DEBUG|Routine' | tail -40
