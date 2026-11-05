@@ -53,16 +53,18 @@ def probe(only=None):
     else:
         report(provider_ready=False)
         return
+    from yt_dlp.extractor.youtube._base import INNERTUBE_CLIENTS
+    origin = "https://clipdock-eu-test.onrender.com/"
+    INNERTUBE_CLIENTS["web_embedded"]["INNERTUBE_CONTEXT"]["thirdParty"]["embedUrl"] = origin
     cases = [
-        ("visionos_googleapis", {"extractor_args": {"youtube": {
-            "player_client": ["visionos"], "innertube_host": ["youtubei.googleapis.com"],
-            "player_skip": ["webpage", "configs"]}}}),
-        ("mweb_googleapis_pot", {"impersonate": ImpersonateTarget(client="chrome"), "extractor_args": {"youtube": {
-            "player_client": ["mweb"], "innertube_host": ["youtubei.googleapis.com"],
-            "fetch_pot": ["always"], "player_skip": ["webpage", "configs"]}}}),
-        ("embedded_nocookie", {"impersonate": ImpersonateTarget(client="chrome"), "extractor_args": {"youtube": {
+        ("embedded_own_referer", {"impersonate": ImpersonateTarget(client="chrome"),
+            "http_headers": {"Referer": origin}, "extractor_args": {"youtube": {
             "player_client": ["web_embedded"], "innertube_host": ["www.youtube-nocookie.com"],
             "player_skip": ["webpage", "configs"]}}}),
+        ("embedded_own_referer_pot", {"impersonate": ImpersonateTarget(client="chrome"),
+            "http_headers": {"Referer": origin}, "extractor_args": {"youtube": {
+            "player_client": ["web_embedded"], "innertube_host": ["www.youtube-nocookie.com"],
+            "fetch_pot": ["always"], "player_skip": ["webpage", "configs"]}}}),
     ]
     report(stage="start", cases=len(cases))
     for name, extra in cases:
