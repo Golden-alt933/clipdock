@@ -254,6 +254,33 @@ def health():
     return {"status":"ok", "version":__version__}
 
 
+ROUTE_CACHE = {"checked": 0.0, "result": None}
+
+
+@app.get("/api/route")
+def youtube_route():
+    """Report whether YouTube goes through the WARP proxy. Cached for a minute."""
+    with LOCK:
+        if ROUTE_CACHE["result"] and time.time() - ROUTE_CACHE["checked"] < 60:
+            return ROUTE_CACHE["result"]
+    from .worker import youtube_proxy
+    proxy = youtube_proxy("https://www.youtube.com/")
+    result = {"version": __version__, "warp_enabled": os.environ.get("CLIPDOCK_WARP") == "1",
+              "proxy_listening": bool(proxy), "warp": None, "colo": None}
+    if proxy:
+        import yt_dlp
+        try:
+            with yt_dlp.YoutubeDL({"proxy": proxy, "quiet": True, "no_warnings": True, "socket_timeout": 8}) as ydl:
+                trace = ydl.urlopen("https://www.cloudflare.com/cdn-cgi/trace").read().decode()
+            fields = dict(line.split("=", 1) for line in trace.splitlines() if "=" in line)
+            result.update(warp=fields.get("warp") in ("on", "plus"), colo=fields.get("colo"))
+        except Exception as exc:
+            result.update(warp=False, error=type(exc).__name__)
+    with LOCK:
+        ROUTE_CACHE.update(checked=time.time(), result=result)
+    return result
+
+
 @app.get("/api/config")
 def config(request: Request):
     import yt_dlp.version

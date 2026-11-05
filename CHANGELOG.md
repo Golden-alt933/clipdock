@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0 — 2026-11-05
+
+- Hosted YouTube requests go through a free, user-space Cloudflare WARP proxy; Instagram and Pinterest stay direct. Falls back to direct if the proxy is down.
+- Added `/api/route` to show whether YouTube is using WARP.
+
 ## 0.9.1 — 2026-11-05
 
 - Include yt-dlp's browser-compatible networking dependency, enabling Instagram's public API extraction path and browser TLS fingerprints.
