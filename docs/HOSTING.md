@@ -2,6 +2,20 @@
 
 The Docker image runs the whole ClipDock website: browser interface, Python API, yt-dlp, Node.js, and FFmpeg. Visitors need no installation or terminal commands.
 
+## Live demo
+
+[Open ClipDock](https://clipdock-4mt9.onrender.com). It runs on Render's Free plan in Singapore, with manual deployments and temporary file storage.
+
+Verified on **5 November 2026**:
+
+| Platform | Result on this host |
+| --- | --- |
+| Pinterest | Sample downloaded through Chrome: 720 × 1280 MP4 with H.264 video and AAC audio, 57.7 seconds, 16.1 MiB. |
+| YouTube | The supplied Short was rejected with a sign-in/rate-limit error. |
+| Instagram | The supplied Reel was rejected with HTTP 429 (Too Many Requests). |
+
+The same YouTube and Instagram links returned metadata successfully from the local app during this check. The Pinterest result verifies the hosted download pipeline. Availability can differ across platforms and videos; use the local app when a platform rejects the hosted service. Platform restrictions and free-host limits may change.
+
 ## Deploy on Render's free compute plan
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Golden-alt933/clipdock)

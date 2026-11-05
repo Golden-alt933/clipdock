@@ -46,7 +46,9 @@ clipdock serve --open
 
 Your browser opens `http://127.0.0.1:8787`. Paste a link, choose a format, and download. Press **Ctrl+C** in the terminal to stop it. Windows users who downloaded the source ZIP can also double-click **Start ClipDock.cmd**.
 
-This is a **local web app**: the browser is its interface and the downloader runs on your computer. Visiting this GitHub repository does not launch a public website. Optional deployment instructions are in [the hosting guide](docs/HOSTING.md).
+This command runs a **local web app**: the browser is its interface and the downloader runs on your computer. GitHub hosts the source code.
+
+[Open the hosted demo](https://clipdock-4mt9.onrender.com) (free, limited). A Pinterest sample downloaded successfully; the tested YouTube and Instagram links were rejected from this host. Use the local app for those platforms. See [hosting status and deployment instructions](docs/HOSTING.md).
 
 ## How does downloading work?
 
