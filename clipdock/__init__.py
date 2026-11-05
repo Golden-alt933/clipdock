@@ -1,3 +1,3 @@
 """ClipDock: local video downloads with a web interface and terminal commands."""
 
-__version__ = "0.10.1"
+__version__ = "0.11.0"

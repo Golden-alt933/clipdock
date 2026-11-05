@@ -115,3 +115,22 @@ class YouTubeProxyTests(unittest.TestCase):
             proxy = f"socks5://127.0.0.1:{server.getsockname()[1]}"
             with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_PROXY": proxy}):
                 self.assertEqual(worker.youtube_proxy("https://www.youtube.com/watch?v=jNQXAC9IVRw"), proxy)
+
+
+class YouTubeCookieTests(unittest.TestCase):
+    def test_cookies_used_only_for_youtube_and_copied_to_writable_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / "cookies.txt"
+            source.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
+            with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_COOKIES": str(source), "CLIPDOCK_YOUTUBE_PROXY": ""}):
+                options = worker.youtube_options("https://www.youtube.com/watch?v=jNQXAC9IVRw")
+                self.assertNotEqual(options["cookiefile"], str(source))
+                self.assertEqual(Path(options["cookiefile"]).read_text(encoding="utf-8"), source.read_text(encoding="utf-8"))
+                self.assertNotIn("proxy", options)
+                self.assertEqual(worker.youtube_options("https://www.instagram.com/reel/abc/"), {})
+
+    def test_missing_cookie_file_falls_back_to_proxy(self):
+        with patch.dict("os.environ", {"CLIPDOCK_YOUTUBE_COOKIES": "/nonexistent/cookies.txt",
+                                       "CLIPDOCK_YOUTUBE_PROXY": "socks5://proxy.example:1080"}):
+            self.assertEqual(worker.youtube_options("https://www.youtube.com/watch?v=jNQXAC9IVRw"),
+                             {"proxy": "socks5://proxy.example:1080"})

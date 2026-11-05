@@ -1,6 +1,7 @@
-"""Try several YouTube routes/clients from the server against one fixed public video.
+"""Try several YouTube routes against one fixed public video from the server.
 
-Used by /api/route/probe to find which configuration a host can use. No user input reaches it.
+Used by /api/route/probe to find which configuration a host can use. No user input reaches it,
+and it never returns cookie contents.
 """
 import os
 import re
@@ -13,44 +14,44 @@ VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 def _trace(proxy):
     import yt_dlp
     try:
-        with yt_dlp.YoutubeDL({"proxy": proxy, "quiet": True, "no_warnings": True, "socket_timeout": 10}) as ydl:
+        with yt_dlp.YoutubeDL({"proxy": proxy, "quiet": True, "no_warnings": True, "socket_timeout": 8}) as ydl:
             text = ydl.urlopen("https://www.cloudflare.com/cdn-cgi/trace").read().decode()
         fields = dict(line.split("=", 1) for line in text.splitlines() if "=" in line)
-        return {k: fields.get(k) for k in ("ip", "colo", "warp")}
+        return {k: fields.get(k) for k in ("colo", "warp")}
     except Exception as exc:
         return {"error": type(exc).__name__}
 
 
 def _try(name, options):
     import yt_dlp
-    base = {"quiet": True, "no_warnings": True, "socket_timeout": 20, "noplaylist": True,
-            "cachedir": False, "js_runtimes": {"node": {}}}
+    base = {"quiet": True, "no_warnings": True, "socket_timeout": 10, "retries": 0, "extractor_retries": 0,
+            "noplaylist": True, "cachedir": False, "js_runtimes": {"node": {}}}
     base.update(options)
     started = time.monotonic()
     try:
         with yt_dlp.YoutubeDL(base) as ydl:
             info = ydl.extract_info(VIDEO, download=False)
-        formats = info.get("formats") or []
-        heights = sorted({f["height"] for f in formats if f.get("height")})
-        outcome = f"ok: {len(formats)} formats, heights {heights[-3:]}"
+        outcome = f"ok: {len(info.get('formats') or [])} formats"
     except Exception as exc:
-        outcome = re.sub(r"\x1b\[[0-9;]*m", "", str(exc)).replace(VIDEO, "")[:160]
+        outcome = re.sub(r"\x1b\[[0-9;]*m", "", str(exc)).replace(VIDEO, "")[:140]
     return name, f"{outcome} ({time.monotonic() - started:.1f}s)"
 
 
 def run():
-    proxy = os.environ.get("CLIPDOCK_YOUTUBE_PROXY", "").strip()
-    remote = proxy.replace("socks5://", "socks5h://", 1) if proxy.startswith("socks5://") else None
+    from .worker import youtube_cookies, youtube_proxy
+    proxy = youtube_proxy(VIDEO)
+    cookies = youtube_cookies(VIDEO)
     variants = [("direct", {})]
     if proxy:
-        variants.append(("warp", {"proxy": proxy}))
-        if remote:
-            variants.append(("warp_remote_dns", {"proxy": remote}))
-        for client in ("tv", "tv_simply", "android_vr", "ios", "mweb", "web_safari", "web_embedded", "visionos"):
-            variants.append((f"warp_{client}", {"proxy": proxy,
-                                                "extractor_args": {"youtube": {"player_client": [client]}}}))
-    with ThreadPoolExecutor(max_workers=4) as pool:
+        variants += [("warp", {"proxy": proxy}),
+                     ("warp_tv", {"proxy": proxy, "extractor_args": {"youtube": {"player_client": ["tv"]}}})]
+    if cookies:
+        variants += [("cookies", {"cookiefile": cookies}),
+                     ("cookies_tv", {"cookiefile": cookies, "extractor_args": {"youtube": {"player_client": ["tv"]}}}),
+                     ("cookies_web_safari", {"cookiefile": cookies,
+                                             "extractor_args": {"youtube": {"player_client": ["web_safari"]}}})]
+        if proxy:
+            variants.append(("cookies_warp", {"cookiefile": cookies, "proxy": proxy}))
+    with ThreadPoolExecutor(max_workers=3) as pool:
         results = dict(pool.map(lambda v: _try(*v), variants))
-    return {"egress": {"direct": _trace(None), "warp": _trace(proxy) if proxy else None,
-                       "warp_remote_dns": _trace(remote) if remote else None},
-            "youtube": results}
+    return {"cookies_configured": bool(cookies), "warp": _trace(proxy) if proxy else None, "youtube": results}
