@@ -54,15 +54,15 @@ def probe(only=None):
         report(provider_ready=False)
         return
     cases = [
-        ("chrome_nightly", {"impersonate": ImpersonateTarget(client="chrome")}),
-        ("mweb_auto_pot", {"impersonate": ImpersonateTarget(client="chrome"),
-                           "extractor_args": {"youtube": {"player_client": ["mweb"]}}}),
-        ("mweb_player_pot", {"impersonate": ImpersonateTarget(client="chrome"),
-                             "extractor_args": {"youtube": {"player_client": ["mweb"], "fetch_pot": ["always"]}}}),
-        ("safari_player_pot", {"impersonate": ImpersonateTarget(client="safari"),
-                               "extractor_args": {"youtube": {"player_client": ["web_safari"], "fetch_pot": ["always"]}}}),
-        ("mweb_skip_webpage_pot", {"impersonate": ImpersonateTarget(client="chrome"),
-                                  "extractor_args": {"youtube": {"player_client": ["mweb"], "fetch_pot": ["always"], "player_skip": ["webpage", "configs"]}}}),
+        ("visionos_googleapis", {"extractor_args": {"youtube": {
+            "player_client": ["visionos"], "innertube_host": ["youtubei.googleapis.com"],
+            "player_skip": ["webpage", "configs"]}}}),
+        ("mweb_googleapis_pot", {"impersonate": ImpersonateTarget(client="chrome"), "extractor_args": {"youtube": {
+            "player_client": ["mweb"], "innertube_host": ["youtubei.googleapis.com"],
+            "fetch_pot": ["always"], "player_skip": ["webpage", "configs"]}}}),
+        ("embedded_nocookie", {"impersonate": ImpersonateTarget(client="chrome"), "extractor_args": {"youtube": {
+            "player_client": ["web_embedded"], "innertube_host": ["www.youtube-nocookie.com"],
+            "player_skip": ["webpage", "configs"]}}}),
     ]
     report(stage="start", cases=len(cases))
     for name, extra in cases:
