@@ -12,6 +12,14 @@ from clipdock import worker
 
 
 class MediaTests(unittest.TestCase):
+    def test_instagram_browser_transport_is_available(self):
+        with yt_dlp.YoutubeDL({"quiet": True}) as downloader:
+            extractor = downloader.get_info_extractor("Instagram")
+            self.assertTrue(
+                extractor._can_impersonate,
+                "Instagram's public API path needs yt-dlp's curl-cffi extra",
+            )
+
     def run_worker(self, output_format="mp4", bitrate="320", extra=None):
         captured = {}
         original = yt_dlp.YoutubeDL

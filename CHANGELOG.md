@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1 — 2026-11-05
+
+- Include yt-dlp's browser-compatible networking dependency, enabling Instagram's public API extraction path and browser TLS fingerprints.
+- Added a runtime dependency check so installations missing Instagram's browser transport fail verification.
+
 ## 0.9.0 — 2026-11-02
 
 - Replaced the supported-platform text pills with matching YouTube, Instagram, and Pinterest logo badges in brand colors.

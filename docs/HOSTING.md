@@ -2,6 +2,8 @@
 
 The Docker image runs the whole ClipDock website: browser interface, Python API, yt-dlp, Node.js, and FFmpeg. Visitors need no installation or terminal commands.
 
+Version 0.9.1 includes yt-dlp's `curl-cffi` transport for sites that inspect browser TLS fingerprints. This also enables Instagram's public API extraction path. A cloud host's network address can still be rejected by a platform; verify real downloads after each deployment.
+
 ## Live demo
 
 [Open ClipDock](https://clipdock-4mt9.onrender.com). It runs on Render's Free plan in Singapore, with manual deployments and temporary file storage.
