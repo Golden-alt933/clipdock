@@ -37,7 +37,7 @@ def probe():
             report(binary=binary, result="FAIL", error=safe(exc))
 
     urls = [("supplied_short", "https://www.youtube.com/shorts/q6ZqeyEh64A"),
-            ("upstream_test_video", "https://www.youtube.com/watch?v=BaW_jenozKc")]
+            ("public_control_video", "https://www.youtube.com/watch?v=jNQXAC9IVRw")]
     for name, url in urls:
         try:
             result = execute([sys.executable, "-m", "yt_dlp", "--ignore-config", "--no-cache-dir",
