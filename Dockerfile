@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-runtime /app /opt/bgutil
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates libatomic1 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 clipdock
 
