@@ -1,4 +1,4 @@
-FROM quay.io/invidious/invidious-companion:latest AS companion-runtime
+FROM quay.io/invidious/invidious-companion@sha256:55f0bc1002c0edbe4e8163d503c7d797ed919e5861e2c0d0f829ae80138237a4 AS companion-runtime
 FROM node:22-bookworm-slim AS node-runtime
 FROM python:3.13-slim-trixie
 

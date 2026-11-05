@@ -53,7 +53,15 @@ def probe_companion():
             "GLIBC_": "runtime_library_mismatch",
         }
         seen = set()
+        details = 0
         for line in backend.stdout:
+            if "Using Invidious companion version" in line:
+                report(engine="companion", version=safe(line.strip()))
+            if details < 6 and any(marker in line for marker in ("err:", "Error:", "Got status", "No valid format")):
+                message = safe(line.strip().replace(key, "<PRIVATE>"))
+                message = re.sub(r"(?i)((?:cookie|authorization|po.?token|visitor.?data|secret.?key)\s*[:=]\s*)[^,}]+", r"\1<PRIVATE>", message)
+                report(engine="companion", diagnostic=message)
+                details += 1
             for marker, stage in markers.items():
                 if marker in line and stage not in seen:
                     seen.add(stage)
