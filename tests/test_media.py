@@ -2,6 +2,8 @@
 import contextlib
 import io
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,14 +22,14 @@ class MediaTests(unittest.TestCase):
                 "Instagram's public API path needs yt-dlp's curl-cffi extra",
             )
 
-    def run_worker(self, output_format="mp4", bitrate="320", extra=None):
-        captured = {}
+    def run_worker(self, output_format="mp4", bitrate="320", extra=None, formats=None):
+        captured = {"converted": []}
         original = yt_dlp.YoutubeDL
         with tempfile.TemporaryDirectory() as folder:
             def create(options):
                 captured["options"] = options
                 downloader = original(options)
-                info = {"id":"fixture", "title":"Portrait fixture", "duration":30, "extractor":"fixture", "formats":[
+                info = {"id":"fixture", "title":"Portrait fixture", "duration":30, "extractor":"fixture", "formats":formats or [
                     {"format_id":"audio", "url":"https://example.com/audio.m4a", "ext":"m4a", "vcodec":"none", "acodec":"aac", "abr":128},
                     {"format_id":"portrait", "url":"https://example.com/video.mp4", "ext":"mp4", "vcodec":"h264", "acodec":"none", "width":720, "height":1280},
                 ]}
@@ -43,7 +45,9 @@ class MediaTests(unittest.TestCase):
                 return downloader
 
             output = io.StringIO()
-            with patch.object(worker.yt_dlp, "YoutubeDL", side_effect=create), patch("shutil.which", return_value="ffmpeg"), contextlib.redirect_stdout(output):
+            with patch.object(worker.yt_dlp, "YoutubeDL", side_effect=create), patch("shutil.which", return_value="ffmpeg"), \
+                    patch.object(worker, "make_editable", side_effect=lambda path: captured["converted"].append(path.name)), \
+                    contextlib.redirect_stdout(output):
                 worker.run({"mode":"download", "url":"https://example.com/video", "folder":folder,
                             "format":output_format, "quality":"1080", "audio_bitrate":bitrate, **(extra or {})})
             captured["events"] = [json.loads(line) for line in output.getvalue().splitlines()]
@@ -81,6 +85,47 @@ class MediaTests(unittest.TestCase):
             progress({"status":"downloading", "filename":"video", "downloaded_bytes":60})
             with self.assertRaisesRegex(ValueError, "100 MB"):
                 progress({"status":"downloading", "filename":"audio", "downloaded_bytes":60})
+
+    def test_h264_is_preferred_over_vp9_at_the_same_resolution(self):
+        result = self.run_worker(formats=[
+            {"format_id":"audio", "url":"https://example.com/a.m4a", "ext":"m4a", "vcodec":"none", "acodec":"aac", "abr":128},
+            {"format_id":"vp9", "url":"https://example.com/v9.mp4", "ext":"mp4", "vcodec":"vp09.00.40.08", "acodec":"none",
+             "width":1080, "height":1080, "tbr":900},
+            {"format_id":"avc", "url":"https://example.com/avc.mp4", "ext":"mp4", "vcodec":"avc1.640028", "acodec":"none",
+             "width":1080, "height":1080, "tbr":800},
+        ])
+        self.assertEqual(result["selected"]["format_id"], "avc+audio")
+
+    def test_mp4_is_checked_for_editor_compatibility_unless_kept(self):
+        self.assertEqual(self.run_worker()["converted"], ["fixture.mp4"])
+        self.assertEqual(self.run_worker(extra={"editable":False})["converted"], [])
+        self.assertEqual(self.run_worker("mp3")["converted"], [])
+
+
+@unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "needs FFmpeg")
+class EditableConversionTests(unittest.TestCase):
+    def make_clip(self, folder, video, audio):
+        path = Path(folder) / "clip.mp4"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=64x64:rate=10:duration=1",
+                        "-f", "lavfi", "-i", "sine=duration=1", "-c:v", video, "-pix_fmt", "yuv420p",
+                        "-c:a", audio, "-shortest", str(path)], check=True)
+        return path
+
+    def test_vp9_and_opus_become_h264_and_aac(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.make_clip(folder, "libvpx-vp9", "libopus")
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertTrue(worker.make_editable(path))
+            self.assertEqual(worker.probe_streams(path), ("h264", "yuv420p", "aac"))
+            self.assertIn('"converting"', output.getvalue())
+            self.assertEqual([p.name for p in Path(folder).iterdir()], ["clip.mp4"])
+
+    def test_h264_and_aac_are_left_untouched(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = self.make_clip(folder, "libx264", "aac")
+            before = path.read_bytes()
+            self.assertFalse(worker.make_editable(path))
+            self.assertEqual(path.read_bytes(), before)
 
 
 if __name__ == "__main__":

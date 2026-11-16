@@ -28,6 +28,9 @@ def parser():
     download.add_argument("--quality", choices=("best", "360", "720", "1080", "2160"), default="1080")
     download.add_argument("--audio-bitrate", choices=("128", "192", "256", "320"), default="320",
                           help="MP3 target bitrate in kbps (default: 320); does not improve source fidelity")
+    download.add_argument("--keep-codec", action="store_true",
+                          help="Keep the source video/audio codecs (e.g. VP9, AV1, Opus) instead of converting "
+                               "the MP4 to H.264/AAC for After Effects, Premiere Pro and other editors")
     download.add_argument("--output", "-o", type=Path, default=Path.cwd() / "Downloads", help="Destination directory")
     download.add_argument("--json", action="store_true", help="Print newline-delimited JSON events")
     commands.add_parser("doctor", help="Check Python, FFmpeg, FFprobe, and Node.js")
@@ -56,7 +59,7 @@ def download(args):
         print("FFmpeg and FFprobe are required. Run: clipdock doctor", file=sys.stderr)
         return 2
     options = {"mode": "download", "url": url, "format": args.format, "quality": args.quality,
-               "audio_bitrate": args.audio_bitrate,
+               "audio_bitrate": args.audio_bitrate, "editable": not args.keep_codec,
                "folder": str(args.output.expanduser().resolve())}
     process = subprocess.Popen([sys.executable, "-u", str(Path(__file__).with_name("worker.py"))],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8",
@@ -85,6 +88,9 @@ def download(args):
                 print(f"Downloading: {value:.1f}%" if value is not None else "Downloading…", flush=True)
             elif kind == "processing":
                 print("Finishing file…", flush=True)
+            elif kind == "converting":
+                print(f"Converting {event.get('video_codec') or 'video'} to H.264 so editing apps can open it…",
+                      flush=True)
             elif kind == "complete":
                 print(f"Saved: {event['path']}", flush=True)
             elif kind == "error":

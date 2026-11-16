@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0 — 2026-11-17
+
+- MP4 downloads now open in After Effects, Premiere Pro, DaVinci Resolve, and Final Cut. Instagram and YouTube often serve VP9/AV1 video inside `.mp4`, which those editors imported as audio only.
+- Format selection prefers H.264 video and AAC audio at the chosen resolution.
+- When only VP9, AV1, HEVC, 10-bit, or Opus streams exist, the finished MP4 is converted to H.264 (yuv420p) / AAC with FFmpeg; compatible streams are copied untouched.
+- New `clipdock download --keep-codec` keeps the source codecs. The hosted site skips conversion.
+
 ## 0.11.0 — 2026-11-05
 
 - Optional signed-in YouTube cookies for hosted sites: a Render secret file `youtube-cookies.txt` (or `CLIPDOCK_YOUTUBE_COOKIES`) is used for YouTube only, on a private writable copy. Falls back to WARP/direct when absent.

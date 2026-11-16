@@ -148,6 +148,8 @@ def run_job(job_id):
         process.stdin.write(json.dumps({"mode": "download", "url": job["url"], "format": job["format"],
                                        "quality": job["quality"], "audio_bitrate": job.get("audio_bitrate", "192"),
                                        "folder": str(DOWNLOADS / job_id),
+                                       # Local installs hand editors H.264/AAC; the free hosted CPU skips re-encoding.
+                                       "editable": not hosting.HOSTED,
                                        "max_bytes": hosting.MAX_BYTES if hosting.HOSTED else None,
                                        "max_duration": hosting.MAX_DURATION if hosting.HOSTED else None}) + "\n")
         process.stdin.close()
@@ -164,7 +166,7 @@ def run_job(job_id):
                     job.update({k: event[k] for k in ("title", "creator", "duration", "thumbnail")})
                 elif kind == "progress":
                     job.update(status="downloading", **event)
-                elif kind == "processing":
+                elif kind in ("processing", "converting"):
                     job.update(status="processing", speed=None, eta=None)
                 elif kind == "complete":
                     job.update(status="complete", percent=100, finished_at=time.time(), **event)

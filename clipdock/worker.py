@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import socket
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -92,6 +93,54 @@ def youtube_options(url):
     return {"proxy": proxy} if proxy else {}
 
 
+# Codecs that After Effects, Premiere Pro, DaVinci Resolve and Final Cut import without plugins.
+# YouTube and Instagram often serve VP9/AV1 video (sometimes inside .mp4) and Opus audio, which
+# those editors either reject or open as audio only.
+EDITABLE_VIDEO = {"h264"}
+EDITABLE_PIXEL_FORMATS = {"yuv420p", "yuvj420p"}
+EDITABLE_AUDIO = {"aac", "mp3"}
+NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+
+def probe_streams(path):
+    """Return (video codec, pixel format, audio codec) of the first streams; None where absent."""
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,codec_name,pix_fmt",
+                             "-of", "json", str(path)], capture_output=True, text=True, creationflags=NO_WINDOW)
+    if result.returncode != 0:
+        raise ValueError("FFprobe could not read the downloaded file.")
+    streams = json.loads(result.stdout or "{}").get("streams", [])
+    video = next((s for s in streams if s.get("codec_type") == "video"), {})
+    audio = next((s for s in streams if s.get("codec_type") == "audio"), {})
+    return video.get("codec_name"), video.get("pix_fmt"), audio.get("codec_name")
+
+
+def make_editable(path):
+    """Re-encode only what editing apps cannot read, so the MP4 opens with picture and sound.
+
+    H.264 video and AAC audio are copied untouched; anything else (VP9, AV1, HEVC, Opus, 10-bit)
+    becomes H.264 yuv420p / AAC. Returns True when the file was converted.
+    """
+    vcodec, pix_fmt, acodec = probe_streams(path)
+    video_ok = vcodec is None or (vcodec in EDITABLE_VIDEO and pix_fmt in EDITABLE_PIXEL_FORMATS)
+    audio_ok = acodec is None or acodec in EDITABLE_AUDIO
+    if video_ok and audio_ok:
+        return False
+    emit("converting", video_codec=vcodec, audio_codec=acodec)
+    temporary = path.with_name(path.stem + ".converting" + path.suffix)
+    command = ["ffmpeg", "-v", "error", "-y", "-i", str(path), "-map", "0:v:0?", "-map", "0:a:0?"]
+    command += ["-c:v", "copy"] if video_ok else ["-c:v", "libx264", "-preset", "veryfast", "-crf", "16",
+                                                  "-pix_fmt", "yuv420p"]
+    command += ["-c:a", "copy"] if audio_ok else ["-c:a", "aac", "-b:a", "192k"]
+    command += ["-movflags", "+faststart", str(temporary)]
+    result = subprocess.run(command, capture_output=True, text=True, creationflags=NO_WINDOW)
+    if result.returncode != 0 or not temporary.is_file():
+        if temporary.exists():
+            temporary.unlink()
+        raise ValueError("Could not convert the video to H.264 for editing apps. " + result.stderr.strip()[-400:])
+    os.replace(temporary, path)
+    return True
+
+
 def run(data):
     options = {"quiet": True, "no_warnings": True, "logger": Logger(), "noplaylist": True,
                "playlist_items": "1", "socket_timeout": 25, "retries": 2, "fragment_retries": 2,
@@ -151,7 +200,8 @@ def run(data):
         if quality not in {"best", "360", "720", "1080", "2160"}:
             raise ValueError("Choose a supported video quality.")
         options.update({"format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
-                        "format_sort": ["res" if quality == "best" else f"res:{quality}"],
+                        # At equal resolution, prefer H.264 + AAC so most downloads need no conversion.
+                        "format_sort": ["res" if quality == "best" else f"res:{quality}", "vcodec:h264", "acodec:aac"],
                         "merge_output_format": "mp4", "postprocessors": [{"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}]})
     with yt_dlp.YoutubeDL(options) as downloader:
         info = first_video(downloader.extract_info(data["url"], download=False))
@@ -163,6 +213,10 @@ def run(data):
     if not files:
         raise ValueError("Download finished without a usable output file. Try another quality.")
     result = max(files, key=lambda p: p.stat().st_mtime)
+    if output_format == "mp4" and data.get("editable", True):
+        if not shutil.which("ffprobe"):
+            raise ValueError("FFprobe is missing. Install FFmpeg (it includes FFprobe), then restart ClipDock.")
+        make_editable(result)
     emit("complete", filename=result.name, path=str(result.resolve()), size=result.stat().st_size)
 
 

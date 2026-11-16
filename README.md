@@ -28,15 +28,18 @@ clipdock download "VIDEO_URL"
 clipdock download "VIDEO_URL" --quality 720 --output ./saved-videos
 clipdock download "VIDEO_URL" --format mp3 --audio-bitrate 320
 clipdock download "VIDEO_URL" --format audio
+clipdock download "VIDEO_URL" --keep-codec
 ```
 
 | Output | What you get |
 | --- | --- |
-| MP4 (default) | Video with audio when the source supplies it; prefers 1080p |
+| MP4 (default) | Video with audio when the source supplies it; prefers 1080p. Always **H.264 + AAC**, so it opens in After Effects, Premiere Pro, DaVinci Resolve, and Final Cut |
 | MP3 | Audio conversion; 128, 192, 256, or **320 kbps** (default) |
 | Source audio | The best available original audio codec, usually M4A/AAC or Opus |
 
 Files go to `Downloads` in your current folder unless you set `--output`. A higher MP3 bitrate cannot restore detail missing from the source; choose source audio to avoid another MP3 conversion.
+
+YouTube and Instagram often serve VP9 or AV1 video (even inside `.mp4`) and Opus audio. Editing apps either reject those or import only the audio, so ClipDock picks H.264/AAC when the site offers it at your chosen quality and otherwise converts the finished MP4 with FFmpeg. Streams that are already H.264/AAC are copied untouched. Pass `--keep-codec` to keep the original codecs (smaller files; fine for phones and browsers). The hosted website skips the conversion to save server time.
 
 ## Prefer buttons?
 
