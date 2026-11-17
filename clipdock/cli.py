@@ -22,7 +22,9 @@ def parser():
     serve.add_argument("--open", action="store_true", help="Open your default browser")
     serve.add_argument("--data-dir", type=Path, help="Directory for history and the Downloads folder")
     download = commands.add_parser("download", help="Download directly from the terminal")
-    download.add_argument("url")
+    download.add_argument("url", nargs="?",
+                          help="Video link in quotes. Leave it out to paste the link at a prompt instead, "
+                               "which avoids shells such as PowerShell rejecting the & in YouTube links")
     download.add_argument("--format", choices=("mp4", "mp3", "audio"), default="mp4",
                           help="MP4 video, MP3 conversion, or best source audio")
     download.add_argument("--quality", choices=("best", "360", "720", "1080", "2160"), default="1080")
@@ -49,7 +51,22 @@ def doctor():
     return 1 if missing else 0
 
 
+def ask_for_url():
+    """Read the link at a prompt; pasted text never passes through the shell, so & and ? are safe."""
+    try:
+        return input("Paste a video link and press Enter: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print(file=sys.stderr)
+        return ""
+
+
 def download(args):
+    if not args.url:
+        args.url = ask_for_url()
+        if not args.url:
+            print('Error: no link given. Run clipdock download, then paste the link, or put it in quotes: '
+                  'clipdock download "VIDEO_URL"', file=sys.stderr)
+            return 2
     try:
         url, platform = normalize_url(args.url)
     except ValueError as error:

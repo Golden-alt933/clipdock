@@ -49,6 +49,26 @@ class CliTests(unittest.TestCase):
             self.assertEqual(main(["download", "https://127.0.0.1/video"]), 2)
             spawn.assert_not_called()
 
+    def test_missing_link_is_read_from_a_prompt(self):
+        pasted = "https://www.youtube.com/watch?v=caySD0OJJvk&list=RDcaySD0OJJvk&start_radio=1"
+        process = unittest.mock.Mock()
+        process.stdout = iter([json.dumps({"event":"complete", "path":"video.mp4"}) + "\n"])
+        process.wait.return_value = 0
+        with patch("builtins.input", return_value=pasted) as prompt, patch("shutil.which", return_value="installed"), \
+                patch("subprocess.Popen", return_value=process), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["download"]), 0)
+        prompt.assert_called_once()
+        self.assertEqual(json.loads(process.stdin.write.call_args.args[0])["url"],
+                         "https://www.youtube.com/watch?v=caySD0OJJvk")
+
+    def test_empty_or_closed_prompt_fails_without_starting_a_downloader(self):
+        for answer in ({"return_value": "  "}, {"side_effect": EOFError}):
+            with self.subTest(answer=answer), patch("builtins.input", **answer), patch("subprocess.Popen") as spawn, \
+                    contextlib.redirect_stderr(io.StringIO()) as error:
+                self.assertEqual(main(["download"]), 2)
+                spawn.assert_not_called()
+                self.assertIn("in quotes", error.getvalue())
+
     def test_missing_ffmpeg_gives_actionable_error(self):
         output = io.StringIO()
         with patch("shutil.which", return_value=None), contextlib.redirect_stderr(output):

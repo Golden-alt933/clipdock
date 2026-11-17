@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.1 — 2026-11-18
+
+- `clipdock download` without a link now asks you to paste one. Pasted links skip the shell, so unquoted YouTube links with `&` (rejected by PowerShell, split by cmd and bash) no longer fail.
+- README explains why links need quotes.
+
 ## 0.12.0 — 2026-11-17
 
 - MP4 downloads now open in After Effects, Premiere Pro, DaVinci Resolve, and Final Cut. Instagram and YouTube often serve VP9/AV1 video inside `.mp4`, which those editors imported as audio only.

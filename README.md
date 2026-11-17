@@ -21,7 +21,7 @@ If `clipdock` is not found, run `uv tool update-shell`, then open a new terminal
 
 ## Download
 
-Replace `VIDEO_URL` with a link. Keep the quotes around it.
+Replace `VIDEO_URL` with a link. Keep the quotes around it: YouTube links contain `&`, which PowerShell rejects and other shells split. Or run `clipdock download` on its own and paste the link when asked.
 
 ```sh
 clipdock download "VIDEO_URL"
